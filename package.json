@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "migrate": "cd backend && npm run migrate"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
+  }
+}

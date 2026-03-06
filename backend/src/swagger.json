@@ -1,0 +1,464 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Genoma - Sistema de Laboratório Genómico",
+    "description": "API RESTful para gerenciamento de laboratório genómico com pacientes, testes, pedidos e resultados",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Support",
+      "email": "support@genoma.lab"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Servidor de desenvolvimento"
+    },
+    {
+      "url": "https://api.genoma.lab",
+      "description": "Servidor de produção"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Paciente": {
+        "type": "object",
+        "required": ["nome", "data_nascimento"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID único do paciente"
+          },
+          "nome": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "description": "Nome completo do paciente"
+          },
+          "data_nascimento": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de nascimento"
+          },
+          "genero": {
+            "type": "string",
+            "enum": ["M", "F", "Outro"],
+            "description": "Gênero do paciente"
+          },
+          "nif": {
+            "type": "string",
+            "pattern": "^\\d{9}$",
+            "description": "Número de Identificação Fiscal (9 dígitos)"
+          },
+          "telemovel": {
+            "type": "string",
+            "description": "Número de telemóvel"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email do paciente"
+          },
+          "morada": {
+            "type": "string",
+            "description": "Endereço do paciente"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indica se o paciente está ativo"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data de criação do registro"
+          }
+        }
+      },
+      "Teste": {
+        "type": "object",
+        "required": ["nome", "preco"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nome": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "description": "Nome do teste genómico"
+          },
+          "preco": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "description": "Preço do teste em euros"
+          },
+          "descricao": {
+            "type": "string",
+            "description": "Descrição detalhada do teste"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "PedidoExame": {
+        "type": "object",
+        "required": ["paciente_id", "medico_id", "teste_id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paciente_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "medico_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teste_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "empresa_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data_pedido": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Pendente", "Colhido", "Em Análise", "Concluído", "Cancelado"],
+            "default": "Pendente"
+          },
+          "notas_clinicas": {
+            "type": "string"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de erro"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Verificar saúde da API",
+        "description": "Endpoint para verificar se a API está operacional",
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "API está operacional",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "API está operacional"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pacientes": {
+      "get": {
+        "summary": "Listar pacientes",
+        "description": "Obtém lista paginada de pacientes ativos",
+        "tags": ["Pacientes"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número da página (padrão: 1)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de registros por página (padrão: 10, máximo: 100)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pacientes obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Paciente"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "currentPage": {
+                          "type": "integer"
+                        },
+                        "pageSize": {
+                          "type": "integer"
+                        },
+                        "totalRecords": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        },
+                        "hasNextPage": {
+                          "type": "boolean"
+                        },
+                        "hasPreviousPage": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar novo paciente",
+        "tags": ["Pacientes"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Paciente"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Paciente criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pacientes/{id}": {
+      "get": {
+        "summary": "Obter detalhes de um paciente",
+        "tags": ["Pacientes"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID do paciente",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do paciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Paciente não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar paciente",
+        "tags": ["Pacientes"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Paciente"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paciente atualizado com sucesso"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletar paciente (soft-delete)",
+        "tags": ["Pacientes"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paciente deletado com sucesso"
+          }
+        }
+      }
+    }
+  }
+}
