@@ -14,6 +14,11 @@ const medicosController = require('./medicos.controller');
 const testeComposicaoController = require('./teste_composicao.controller');
 const pedidosController = require('./pedidos_exames.controller');
 const resultadosController = require('./resultados_detalhados.controller');
+const postosController = require('./postos.controller');
+const kitsController = require('./kits.controller');
+const processosController = require('./processos.controller');
+const resultadosGeneticosController = require('./resultados_geneticos.controller');
+const assetsResultadosController = require('./assets_resultados.controller');
 
 module.exports = {
   authController,
@@ -26,5 +31,10 @@ module.exports = {
   medicosController,
   testeComposicaoController,
   pedidosController,
-  resultadosController
+  resultadosController,
+  postosController,
+  kitsController,
+  processosController,
+  resultadosGeneticosController,
+  assetsResultadosController
 };

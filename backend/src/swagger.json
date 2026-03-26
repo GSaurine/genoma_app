@@ -352,6 +352,198 @@
             "description": "Data de criação do registro"
           }
         }
+      },
+      "Posto": {
+        "type": "object",
+        "required": ["entidade_id", "nome", "codigo_posto"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID único do posto"
+          },
+          "entidade_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID da entidade/empresa à qual o posto pertence"
+          },
+          "nome": {
+            "type": "string",
+            "description": "Nome do posto"
+          },
+          "codigo_posto": {
+            "type": "string",
+            "description": "Código identificador do posto"
+          },
+          "localizacao": {
+            "type": "string",
+            "description": "Localização ou morada do posto"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Kit": {
+        "type": "object",
+        "required": ["codigo_barras", "tipo_kit_id", "lote_id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID único do kit"
+          },
+          "codigo_barras": {
+            "type": "string",
+            "description": "Código de barras do kit"
+          },
+          "tipo_kit_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do tipo de kit"
+          },
+          "lote_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do lote"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status atual do kit"
+          },
+          "data_validade": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de validade do kit"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Processo": {
+        "type": "object",
+        "required": ["numero_processo", "paciente_id", "medico_id", "posto_id", "kit_id", "status_id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID único do processo"
+          },
+          "numero_processo": {
+            "type": "string",
+            "description": "Número identificador do processo"
+          },
+          "paciente_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "medico_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "posto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kit_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status_id": {
+            "type": "integer",
+            "description": "ID do status do processo"
+          },
+          "data_entrada": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ResultadoGenetico": {
+        "type": "object",
+        "required": ["processo_id", "cromossoma", "resultado_valor"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "processo_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cromossoma": {
+            "type": "string"
+          },
+          "resultado_valor": {
+            "type": "string"
+          },
+          "probabilidade": {
+            "type": "number",
+            "format": "float"
+          },
+          "tipo_resultado": {
+            "type": "string"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AssetResultado": {
+        "type": "object",
+        "required": ["processo_id", "url_ficheiro", "tipo_ficheiro"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "processo_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url_ficheiro": {
+            "type": "string"
+          },
+          "tipo_ficheiro": {
+            "type": "string"
+          },
+          "data_upload": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ativo": {
+            "type": "boolean",
+            "default": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   },
@@ -1144,6 +1336,913 @@
         "responses": {
           "200": {
             "description": "Paciente deletado com sucesso"
+          }
+        }
+      }
+    },
+    "/postos": {
+      "get": {
+        "summary": "Listar postos",
+        "tags": ["Postos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de postos obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Posto"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar novo posto",
+        "tags": ["Postos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Posto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Posto criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/postos/{id}": {
+      "get": {
+        "summary": "Obter detalhes de um posto",
+        "tags": ["Postos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do posto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Posto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Posto não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar posto",
+        "tags": ["Postos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Posto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Posto atualizado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "404": {
+            "description": "Posto não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletar posto",
+        "tags": ["Postos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Posto deletado com sucesso"
+          },
+          "404": {
+            "description": "Posto não encontrado"
+          }
+        }
+      }
+    },
+    "/kits": {
+      "get": {
+        "summary": "Listar kits",
+        "tags": ["Kits"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de kits obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Kit"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar novo kit",
+        "tags": ["Kits"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kit criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/kits/{id}": {
+      "get": {
+        "summary": "Obter detalhes de um kit",
+        "tags": ["Kits"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do kit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kit"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Kit não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar kit",
+        "tags": ["Kits"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kit atualizado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "404": {
+            "description": "Kit não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletar kit",
+        "tags": ["Kits"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kit deletado com sucesso"
+          },
+          "404": {
+            "description": "Kit não encontrado"
+          }
+        }
+      }
+    },
+    "/processos": {
+      "get": {
+        "summary": "Listar processos",
+        "tags": ["Processos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de processos obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Processo"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar novo processo",
+        "tags": ["Processos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Processo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Processo criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/processos/{id}": {
+      "get": {
+        "summary": "Obter detalhes de um processo",
+        "tags": ["Processos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do processo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Processo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Processo não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar processo",
+        "tags": ["Processos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Processo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Processo atualizado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "404": {
+            "description": "Processo não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletar processo",
+        "tags": ["Processos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Processo deletado com sucesso"
+          },
+          "404": {
+            "description": "Processo não encontrado"
+          }
+        }
+      }
+    },
+    "/resultados-geneticos": {
+      "get": {
+        "summary": "Listar resultados genéticos",
+        "tags": ["Resultados Genéticos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de resultados genéticos obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ResultadoGenetico"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar novo resultado genético",
+        "tags": ["Resultados Genéticos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultadoGenetico"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Resultado genético criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/resultados-geneticos/{id}": {
+      "get": {
+        "summary": "Obter detalhes de um resultado genético",
+        "tags": ["Resultados Genéticos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do resultado genético",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoGenetico"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resultado genético não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar resultado genético",
+        "tags": ["Resultados Genéticos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultadoGenetico"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado genético atualizado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "404": {
+            "description": "Resultado genético não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletar resultado genético",
+        "tags": ["Resultados Genéticos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado genético deletado com sucesso"
+          },
+          "404": {
+            "description": "Resultado genético não encontrado"
+          }
+        }
+      }
+    },
+    "/assets-resultados": {
+      "get": {
+        "summary": "Listar assets de resultados",
+        "tags": ["Assets de Resultados"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de assets de resultados obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AssetResultado"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar novo asset de resultado",
+        "tags": ["Assets de Resultados"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetResultado"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asset de resultado criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/assets-resultados/{id}": {
+      "get": {
+        "summary": "Obter detalhes de um asset de resultado",
+        "tags": ["Assets de Resultados"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do asset de resultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResultado"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Asset de resultado não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar asset de resultado",
+        "tags": ["Assets de Resultados"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetResultado"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asset de resultado atualizado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "404": {
+            "description": "Asset de resultado não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletar asset de resultado",
+        "tags": ["Assets de Resultados"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset de resultado deletado com sucesso"
+          },
+          "404": {
+            "description": "Asset de resultado não encontrado"
           }
         }
       }

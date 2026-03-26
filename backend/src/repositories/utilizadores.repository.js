@@ -37,7 +37,14 @@ exports.findById = async (id) => {
 exports.findByEmail = async (email) => {
     const connection = await pool.getConnection();
     try {
-        const [rows] = await connection.execute('SELECT * FROM utilizadores WHERE email = ?', [email]);
+        const [rows] = await connection.execute(`
+            SELECT u.id, u.perfil_id, u.empresa_id, u.nome, u.email, u.telefone, u.ativo, u.created_at, u.password_hash,
+                   p.nome as perfil_nome, e.nome as empresa_nome
+            FROM utilizadores u
+            LEFT JOIN perfis p ON u.perfil_id = p.id
+            LEFT JOIN empresas e ON u.empresa_id = e.id
+            WHERE u.email = ?
+        `, [email]);
         return rows[0] || null;
     } finally {
         connection.release();

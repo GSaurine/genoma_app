@@ -17,3 +17,15 @@ exports.login = async (req, res) => {
         res.status(401).json({ error: err.message });
     }
 };
+
+exports.me = async (req, res) => {
+    try {
+        const user = await authService.getUserById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: 'Utilizador não encontrado' });
+        }
+        res.json(user);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};

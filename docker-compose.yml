@@ -1,0 +1,81 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: genoma_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_segura
+      MYSQL_DATABASE: genoma_db
+      MYSQL_USER: genoma_user
+      MYSQL_PASSWORD: genoma_password_segura
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/migrations:/docker-entrypoint-initdb.d:ro
+    networks:
+      - genoma_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: genoma_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: genoma_db
+      DB_USER: genoma_user
+      DB_PASSWORD: genoma_password_segura
+      JWT_SECRET: sua_chave_secreta_jwt_muito_segura
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:8080,http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - genoma_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./genoma_app
+      dockerfile: Dockerfile
+    container_name: genoma_frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - genoma_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  genoma_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
