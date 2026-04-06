@@ -42,10 +42,11 @@ class APIService {
       try {
         final uri = Uri.parse(EnvConfig.apiBaseUrl);
         final host = uri.host;
-        if (host == 'localhost' || host == '127.0.0.1') {
+        // Treat emulator host aliases as localhost in dev for accepting self-signed certs
+        if (host == 'localhost' || host == '127.0.0.1' || host == '10.0.2.2' || host == '10.0.3.2') {
           (d.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
             client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-              return host == 'localhost' || host == '127.0.0.1';
+              return host == 'localhost' || host == '127.0.0.1' || host == '10.0.2.2' || host == '10.0.3.2';
             };
             return client;
           };
