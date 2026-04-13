@@ -87,6 +87,22 @@ class APIService {
     }
   }
 
+  Future<Response<T>> putRequest<T>(String path, {dynamic data}) async {
+    try {
+      return await _dio.put<T>(path, data: data);
+    } on DioException catch (e) {
+      throw _mapDioException(e);
+    }
+  }
+
+  Future<Response<T>> deleteRequest<T>(String path, {dynamic data}) async {
+    try {
+      return await _dio.delete<T>(path, data: data);
+    } on DioException catch (e) {
+      throw _mapDioException(e);
+    }
+  }
+
   Exception _mapDioException(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout) return ConnectionTimeoutException(e.message);
     if (e.type == DioExceptionType.sendTimeout) return SendTimeoutException(e.message);

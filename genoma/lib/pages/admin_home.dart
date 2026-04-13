@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genoma/pages/table_list_page.dart';
 import 'package:genoma/services/paciente_service.dart';
 import 'package:genoma/services/empresas_service.dart';
 import 'package:genoma/services/kits_service.dart';
@@ -357,8 +358,48 @@ class _AdminHomeState extends State<AdminHome> {
               trailing: const Icon(Icons.more_horiz),
             ),
           ),
+          const SizedBox(height: 12),
+          Card(
+            child: ExpansionTile(
+              title: const Text('Tabelas (Visualizar / Editar)'),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _tableChip('Pacientes', '/pacientes'),
+                      _tableChip('Utilizadores', '/utilizadores'),
+                      _tableChip('Empresas', '/empresas'),
+                      _tableChip('Perfis', '/perfis'),
+                      _tableChip('Kits', '/kits'),
+                      _tableChip('Pedidos', '/pedidos'),
+                      _tableChip('Testes', '/testes'),
+                      _tableChip('Itens', '/itens'),
+                      _tableChip('Medicos', '/medicos'),
+                      _tableChip('Resultados', '/resultados'),
+                      _tableChip('Resultados Genéticos', '/resultados-geneticos'),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _tableChip(String label, String endpoint) {
+    return ActionChip(
+      label: Text(label),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => TableListPage(endpoint: endpoint, title: label)),
+        );
+      },
     );
   }
 }
