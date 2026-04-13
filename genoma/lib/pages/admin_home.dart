@@ -58,15 +58,39 @@ class _AdminHomeState extends State<AdminHome> {
     final nifController = TextEditingController();
     final telController = TextEditingController();
 
+    DateTime? selectedDate;
+
     final result = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(builder: (ctx2, setState) => AlertDialog(
         title: const Text('Criar Paciente'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(controller: nomeController, decoration: const InputDecoration(labelText: 'Nome')),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(selectedDate == null ? 'Data de nascimento não selecionada' : selectedDate.toIso8601String().split('T')[0]),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final now = DateTime.now();
+                      final picked = await showDatePicker(
+                        context: ctx2,
+                        initialDate: DateTime(now.year - 30, now.month, now.day),
+                        firstDate: DateTime(1900),
+                        lastDate: now,
+                      );
+                      if (picked != null) setState(() => selectedDate = picked);
+                    },
+                    child: const Text('Selecionar Data'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
               TextField(controller: nifController, decoration: const InputDecoration(labelText: 'NIF')),
               TextField(controller: telController, decoration: const InputDecoration(labelText: 'Telemóvel')),
@@ -74,29 +98,42 @@ class _AdminHomeState extends State<AdminHome> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.of(ctx2).pop(false), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () async {
+              // Validações mínimas antes de enviar
+              if (nomeController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, insira o nome do paciente')));
+                return;
+              }
+              if (selectedDate == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, selecione a data de nascimento')));
+                return;
+              }
+
               final data = {
                 'nome': nomeController.text.trim(),
-                'email': emailController.text.trim(),
+                'data_nascimento': selectedDate!.toIso8601String().split('T')[0],
+                'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
                 'nif': nifController.text.trim().isEmpty ? null : nifController.text.trim(),
                 'telemovel': telController.text.trim().isEmpty ? null : telController.text.trim(),
               };
               try {
                 final created = await _pacienteService.createPaciente(data);
                 if (created != null) {
-                  Navigator.of(ctx).pop(true);
+                  Navigator.of(ctx2).pop(true);
                 } else {
-                  Navigator.of(ctx).pop(false);
+                  Navigator.of(ctx2).pop(false);
                 }
               } catch (e) {
-                Navigator.of(ctx).pop(false);
+                // Mostrar erro para ajudar debug
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao criar paciente: ${e.toString()}')));
+                Navigator.of(ctx2).pop(false);
               }
             },
             child: const Text('Criar')),
         ],
-      ),
+      )),
     );
 
     if (result == true) {
