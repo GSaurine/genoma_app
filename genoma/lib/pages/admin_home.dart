@@ -73,7 +73,7 @@ class _AdminHomeState extends State<AdminHome> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(selectedDate == null ? 'Data de nascimento não selecionada' : selectedDate.toIso8601String().split('T')[0]),
+                    child: Text(selectedDate == null ? 'Data de nascimento não selecionada' : selectedDate!.toIso8601String().split('T')[0]),
                   ),
                   TextButton(
                     onPressed: () async {
