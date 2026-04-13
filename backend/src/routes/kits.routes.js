@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const kitsController = require('../controllers/kits.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+const { authMiddleware, requireRole } = require('../middleware');
 
 router.get('/', authMiddleware, kitsController.list);
 router.get('/:id', authMiddleware, kitsController.getById);
-router.post('/', authMiddleware, kitsController.create);
-router.put('/:id', authMiddleware, kitsController.update);
-router.delete('/:id', authMiddleware, kitsController.delete);
+router.post('/', authMiddleware, requireRole('admin'), kitsController.create);
+router.put('/:id', authMiddleware, requireRole('admin'), kitsController.update);
+router.delete('/:id', authMiddleware, requireRole('admin'), kitsController.delete);
 
 module.exports = router;
