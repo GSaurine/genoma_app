@@ -20,6 +20,8 @@ class _EditEntryPageState extends State<EditEntryPage> {
     widget.entry.forEach((k, v) {
       // Skip nested objects or arrays for simplicity
       if (v is Map || v is List) return;
+      // Skip sensitive fields entirely
+      if (_isSensitiveKey(k)) return;
       _controllers[k] = TextEditingController(text: v?.toString() ?? '');
     });
   }
@@ -28,6 +30,11 @@ class _EditEntryPageState extends State<EditEntryPage> {
   void dispose() {
     for (final c in _controllers.values) c.dispose();
     super.dispose();
+  }
+
+  bool _isSensitiveKey(String key) {
+    final k = key.toLowerCase();
+    return k.contains('hash') || k.contains('password') || k.contains('senha') || k.contains('token') || k.contains('secret') || k.contains('apikey') || k.contains('api_key');
   }
 
   Future<void> _save() async {
@@ -57,11 +64,52 @@ class _EditEntryPageState extends State<EditEntryPage> {
     }
   }
 
+  Future<void> _confirmDelete() async {
+    final id = widget.entry['id'];
+    if (id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registro sem id, não pode deletar')));
+      return;
+    }
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmar deleção'),
+        content: const Text('Tem a certeza que deseja apagar este registro? Esta ação é irreversível.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Apagar')),
+        ],
+      ),
+    );
+
+    if (ok != true) return;
+
+    setState(() => _saving = true);
+    try {
+      await APIService().deleteRequest('${widget.endpoint}/$id');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registro apagado')));
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao apagar: ${e.toString()}')));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final keys = _controllers.keys.toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar registro')),
+      appBar: AppBar(title: const Text('Editar registro'), actions: [
+        IconButton(
+          icon: const Icon(Icons.delete_forever),
+          onPressed: _saving ? null : _confirmDelete,
+          tooltip: 'Apagar registro',
+        )
+      ]),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -75,6 +123,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
                   return TextField(
                     controller: _controllers[k],
                     decoration: InputDecoration(labelText: k),
+                    enabled: k == 'id' ? false : true,
                   );
                 },
               ),

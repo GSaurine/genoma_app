@@ -37,22 +37,30 @@ class _TableListPageState extends State<TableListPage> {
       } else if (body is List) {
         items = List<Map<String, dynamic>>.from((body as List).map((e) => Map<String, dynamic>.from(e as Map)));
       }
-
       setState(() => _items = items);
     } catch (e) {
-      setState(() => _error = e.toString());
+      // Map exception to a friendly message for admins
+      debugPrint('TableList load error: ${e.toString()}');
+      String msg = 'Erro ao carregar dados.';
+      final s = e.toString().toLowerCase();
+      if (s.contains('unauthorized') || s.contains('401')) msg = 'Não autorizado. Faça login novamente.';
+      else if (s.contains('forbidden') || s.contains('403')) msg = 'Acesso proibido.';
+      else if (s.contains('notfound') || s.contains('404')) msg = 'Nenhum registro encontrado.';
+      else if (s.contains('internalservererror') || s.contains('500')) msg = 'Erro interno no servidor. Verifique os logs.';
+      setState(() => _error = msg);
     } finally {
       setState(() => _loading = false);
     }
   }
 
   String _titleForItem(Map<String, dynamic> item) {
-    if (item.containsKey('nome') && (item['nome'] ?? '').toString().isNotEmpty) return item['nome'].toString();
-    if (item.containsKey('email') && (item['email'] ?? '').toString().isNotEmpty) return item['email'].toString();
-    if (item.containsKey('descricao') && (item['descricao'] ?? '').toString().isNotEmpty) return item['descricao'].toString();
-    if (item.containsKey('id')) return item['id'].toString();
-    // fallback: first string-like value
-    for (final v in item.values) {
+    final keys = item.keys.where((k) => !_isSensitiveKey(k)).toList();
+    if (keys.contains('nome') && (item['nome'] ?? '').toString().isNotEmpty) return item['nome'].toString();
+    if (keys.contains('email') && (item['email'] ?? '').toString().isNotEmpty) return item['email'].toString();
+    if (keys.contains('descricao') && (item['descricao'] ?? '').toString().isNotEmpty) return item['descricao'].toString();
+    if (keys.contains('id')) return item['id'].toString();
+    for (final k in keys) {
+      final v = item[k];
       if (v is String && v.isNotEmpty) return v;
     }
     return item.toString();
@@ -72,9 +80,10 @@ class _TableListPageState extends State<TableListPage> {
           separatorBuilder: (_, __) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final item = _items[index];
+            final visible = item.entries.where((e) => !_isSensitiveKey(e.key)).take(3).map((e) => '${e.key}: ${e.value}').join(' • ');
             return ListTile(
               title: Text(_titleForItem(item)),
-              subtitle: Text(item.entries.take(3).map((e) => '${e.key}: ${e.value}').join(' • ')),
+              subtitle: Text(visible),
               onTap: () async {
                 final result = await Navigator.push<bool?>(
                   context,
@@ -87,5 +96,10 @@ class _TableListPageState extends State<TableListPage> {
         );
       }),
     );
+  }
+
+  bool _isSensitiveKey(String key) {
+    final k = key.toLowerCase();
+    return k.contains('hash') || k.contains('password') || k.contains('senha') || k.contains('token') || k.contains('secret') || k.contains('apikey') || k.contains('api_key');
   }
 }
