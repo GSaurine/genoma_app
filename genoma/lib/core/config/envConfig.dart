@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Configurações de ambiente do aplicativo Flutter.
@@ -23,6 +24,13 @@ class EnvConfig {
 
 	/// Em desenvolvimento, permite ignorar autenticação real e usar um mock.
   static bool get devAuthBypass => (_envValue('DEV_AUTH_BYPASS')?.toLowerCase() == 'true');
+
+  /// Em builds de release nunca permitir bypass de autenticação.
+  /// Isso evita comportamento ambíguo entre mock e auth real no ambiente principal.
+  static bool get allowDevAuthBypass {
+    if (kReleaseMode) return false;
+    return devAuthBypass;
+  }
 
 	/// Permite sobrescrever a base URL em tempo de execução (opcional).
   static void setApiBaseUrl(String url) {

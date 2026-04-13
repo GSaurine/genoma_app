@@ -5,6 +5,7 @@ import 'package:genoma/services/kits_service.dart';
 import 'package:genoma/services/perfis_service.dart';
 import 'package:genoma/services/utilizadores_service.dart';
 import 'package:genoma/services/auth_facade.dart';
+import 'package:genoma/core/config/dioConfig.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -37,6 +38,9 @@ class _AdminHomeState extends State<AdminHome> {
   Future<void> _ensureAdmin() async {
     // Garante que o perfil do utilizador esteja carregado e verifica permissões
     try {
+      final token = await AuthFacade().getSavedToken();
+      if (token != null && token.isNotEmpty) APIService().token = token;
+
       if (AuthFacade().currentUser == null) {
         await AuthFacade().fetchCurrentUser();
       }

@@ -1,9 +1,10 @@
 import 'package:genoma/core/config/envConfig.dart';
+import 'package:genoma/core/config/dioConfig.dart';
 import 'package:genoma/services/auth_service.dart';
 import 'package:genoma/services/mock_auth_service.dart';
 
 /// AuthFacade escolhe entre `AuthService` (real) e `MockAuthService` baseado
-/// na flag `EnvConfig.devAuthBypass`.
+/// na flag `EnvConfig.allowDevAuthBypass` (somente em builds não-release).
 class AuthFacade {
   AuthFacade._internal();
   static final AuthFacade _instance = AuthFacade._internal();
@@ -12,7 +13,21 @@ class AuthFacade {
   final AuthService _real = AuthService();
   final MockAuthService _mock = MockAuthService();
 
-  bool get _bypass => EnvConfig.devAuthBypass;
+  bool get _bypass => EnvConfig.allowDevAuthBypass;
+
+  /// Inicializa o estado de autenticação a partir do token salvo.
+  /// Retorna `true` se o utilizador atual foi carregado com sucesso.
+  Future<bool> initializeFromSavedToken() async {
+    try {
+      final token = await getSavedToken();
+      if (token != null && token.isNotEmpty) {
+        APIService().token = token;
+        final user = await fetchCurrentUser();
+        return user != null;
+      }
+    } catch (_) {}
+    return false;
+  }
 
   Future<void> login(String email, String password) => _bypass ? _mock.login(email, password) : _real.login(email, password);
   Future<void> logout() => _bypass ? _mock.logout() : _real.logout();

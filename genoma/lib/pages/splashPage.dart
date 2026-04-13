@@ -22,10 +22,8 @@ class _SplashpageState extends State<Splashpage> {
 
     var route = '/login';
     try {
-      final token = await AuthFacade().getSavedToken();
-      if (token != null && token.isNotEmpty) {
-        APIService().token = token;
-        await AuthFacade().fetchCurrentUser();
+      final ok = await AuthFacade().initializeFromSavedToken();
+      if (ok) {
         route = AuthFacade().isAdmin ? '/admin' : '/home';
       }
     } catch (e, st) {

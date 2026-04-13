@@ -18,7 +18,24 @@ class _HomepageState extends State<Homepage> {
   @override
   void initState() {
     super.initState();
-    _loadPacientes();
+    _ensureAuthenticatedThenLoad();
+  }
+
+  Future<void> _ensureAuthenticatedThenLoad() async {
+    try {
+      final ok = await AuthFacade().initializeFromSavedToken();
+      if (!ok) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+
+    await _loadPacientes();
   }
 
   Future<void> _loadPacientes() async {

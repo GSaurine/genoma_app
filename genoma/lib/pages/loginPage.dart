@@ -18,6 +18,17 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     debugPrint('LoginPage.initState');
+    _checkAlreadyAuthenticated();
+  }
+
+  Future<void> _checkAlreadyAuthenticated() async {
+    try {
+      final initialized = await AuthFacade().initializeFromSavedToken();
+      if (initialized && mounted) {
+        final target = AuthFacade().isAdmin ? '/admin' : '/home';
+        Navigator.pushReplacementNamed(context, target);
+      }
+    } catch (_) {}
   }
 
   Future<void> _login() async {
