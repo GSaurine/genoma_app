@@ -7,7 +7,7 @@ exports.register = async (data) => {
 
     // Normaliza campos do Flutter para o backend
     const nome = data.nome || data.name;
-    const perfil_id = data.perfil_id || 'd74555c9-26b1-11f1-841a-524de2dba1b8'; // Admin por padrão
+    const perfil_id = data.perfil_id; 
 
     return await userRepository.create({
         nome,

@@ -37,7 +37,8 @@ class APIService {
     // Permite aceitar certificados self-signed em desenvolvimento
     // Somente quando explicitamente habilitado via `DEV_ALLOW_INSECURE_HTTPS=true`
     // e apenas para hosts `localhost`/`127.0.0.1` para limitar risco.
-    final allowInsecure = dotenv.env['DEV_ALLOW_INSECURE_HTTPS']?.toLowerCase() == 'true';
+    final allowInsecure = dotenv.isInitialized &&
+        dotenv.env['DEV_ALLOW_INSECURE_HTTPS']?.toLowerCase() == 'true';
     if (allowInsecure) {
       try {
         final uri = Uri.parse(EnvConfig.apiBaseUrl);

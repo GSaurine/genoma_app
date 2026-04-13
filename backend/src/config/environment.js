@@ -4,11 +4,32 @@
  * Garante que valores padrão são usados quando apropriado
  */
 
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const isDevelopment = NODE_ENV === 'development';
+
+const parseList = (val) => (val ? val.split(',').map(s => s.trim()).filter(Boolean) : []);
+
+// Lista de origens explícitas fornecidas via env
+const corsWhitelist = parseList(process.env.CORS_ORIGIN || 'http://localhost:3000');
+
+// Função origin para o pacote `cors` com comportamento seguro:
+// - permite requests sem Origin (ex: curl / server-to-server)
+// - permite origens na whitelist
+// - em desenvolvimento permite dinamicamente qualquer localhost (qualquer porta)
+// - em produção rejeita origens não declaradas
+const corsOrigin = (origin, callback) => {
+  if (!origin) return callback(null, true);
+  if (corsWhitelist.includes(origin)) return callback(null, true);
+  if (isDevelopment && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error('Origin not allowed by CORS'));
+};
+
 module.exports = {
-  // Validação
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  isDevelopment: (process.env.NODE_ENV || 'development') === 'development',
-  isProduction: (process.env.NODE_ENV || 'development') === 'production',
+  NODE_ENV,
+  isDevelopment,
+  isProduction: NODE_ENV === 'production',
 
   // Servidor
   PORT: parseInt(process.env.PORT, 10) || 3000,
@@ -31,9 +52,9 @@ module.exports = {
     expiration: process.env.JWT_EXPIRE || '7d'
   },
 
-  // CORS
+  // CORS - origin é uma função para validação mais segura
   CORS: {
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000').split(','),
+    origin: corsOrigin,
     optionsSuccessStatus: 200
   },
 
