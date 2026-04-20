@@ -1,10 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'pages/admin_home.dart';
-import 'pages/homePage.dart';
-import 'pages/loginPage.dart';
-import 'pages/splashPage.dart';
+import 'router/app_router.dart';
+import 'core/ui/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,12 +48,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: const Locale('pt', 'BR'),
       initialRoute: initialRoute,
-      routes: {
-        '/': (context) => const Splashpage(),
-        '/login': (context) => const LoginPage(),
-        '/home': (context) => const Homepage(),
-        '/admin': (context) => const AdminHome(),
-      },
+      scaffoldMessengerKey: NotificationService().messengerKey,
+      onGenerateRoute: AppRouter.generateRoute,
     );
   }
 }

@@ -13,8 +13,7 @@ exports.findAll = async (page, limit) => {
              LEFT JOIN medicos med ON p.medico_id = med.utilizador_id
              LEFT JOIN postos pos ON p.posto_id = pos.id
              LEFT JOIN kits k ON p.kit_id = k.id
-             ORDER BY p.data_entrada DESC LIMIT ? OFFSET ?`,
-            [l, offset]
+             ORDER BY p.data_entrada DESC LIMIT ${l} OFFSET ${offset}`
         );
         return rows;
     } finally {

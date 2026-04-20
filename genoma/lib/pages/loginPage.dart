@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genoma/services/auth_facade.dart';
 import 'package:genoma/core/config/dioConfig.dart';
+import 'package:genoma/core/ui/notification_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,9 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
-      );
+      NotificationService().showError('Por favor, preencha todos os campos.');
       return;
     }
 
@@ -66,17 +65,13 @@ class _LoginPageState extends State<LoginPage> {
       } catch (navErr, navSt) {
         debugPrint('Navigation error after login: $navErr\n$navSt');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro na navegação: ${navErr.toString()}')),
-          );
+          NotificationService().showError('Erro na navegação: ${navErr.toString()}');
         }
       }
     } catch (e, st) {
       debugPrint('Login error: $e\n$st');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao efetuar login: ${e.toString()}')),
-        );
+        NotificationService().showError('Erro ao efetuar login: ${e.toString()}');
       }
     } finally {
       if (mounted) setState(() => _loading = false);

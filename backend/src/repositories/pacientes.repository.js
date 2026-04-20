@@ -6,8 +6,7 @@ exports.findAll = async (page, limit) => {
     try {
         const { offset, limit: l } = getPaginationParams(page, limit);
         const [rows] = await connection.execute(
-            'SELECT * FROM pacientes WHERE ativo = TRUE ORDER BY created_at DESC LIMIT ? OFFSET ?',
-            [l, offset]
+            `SELECT * FROM pacientes WHERE ativo = TRUE ORDER BY created_at DESC LIMIT ${l} OFFSET ${offset}`
         );
         return rows;
     } finally {
@@ -60,8 +59,8 @@ exports.searchByNome = async (nome, page, limit) => {
     try {
         const { offset, limit: l } = getPaginationParams(page, limit);
         const [rows] = await connection.execute(
-            'SELECT * FROM pacientes WHERE nome LIKE ? AND ativo = TRUE ORDER BY nome LIMIT ? OFFSET ?',
-            [`%${nome}%`, l, offset]
+            `SELECT * FROM pacientes WHERE nome LIKE ? AND ativo = TRUE ORDER BY nome LIMIT ${l} OFFSET ${offset}`,
+            [`%${nome}%`]
         );
         return rows;
     } finally {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genoma/core/config/dioConfig.dart';
+import 'package:genoma/core/ui/notification_service.dart';
 
 class EditEntryPage extends StatefulWidget {
   final String endpoint;
@@ -40,7 +41,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
   Future<void> _save() async {
     final id = widget.entry['id'];
     if (id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registro sem id, não pode atualizar')));
+      NotificationService().showError('Registro sem id, não pode atualizar');
       return;
     }
 
@@ -54,11 +55,11 @@ class _EditEntryPageState extends State<EditEntryPage> {
     try {
       await APIService().putRequest('${widget.endpoint}/$id', data: data);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Atualizado com sucesso')));
+      NotificationService().showSuccess('Atualizado com sucesso');
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao atualizar: ${e.toString()}')));
+      NotificationService().showError('Erro ao atualizar: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -67,7 +68,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
   Future<void> _confirmDelete() async {
     final id = widget.entry['id'];
     if (id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registro sem id, não pode deletar')));
+      NotificationService().showError('Registro sem id, não pode deletar');
       return;
     }
 
@@ -89,11 +90,11 @@ class _EditEntryPageState extends State<EditEntryPage> {
     try {
       await APIService().deleteRequest('${widget.endpoint}/$id');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registro apagado')));
+      NotificationService().showSuccess('Registro apagado');
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao apagar: ${e.toString()}')));
+      NotificationService().showError('Erro ao apagar: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _saving = false);
     }

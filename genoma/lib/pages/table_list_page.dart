@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genoma/core/config/dioConfig.dart';
+import 'package:genoma/widgets/state_view.dart';
 import 'package:genoma/pages/edit_entry_page.dart';
 
 class TableListPage extends StatefulWidget {
@@ -71,28 +72,30 @@ class _TableListPageState extends State<TableListPage> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: Builder(builder: (context) {
-        if (_loading) return const Center(child: CircularProgressIndicator());
-        if (_error != null) return Center(child: Text('Erro: $_error'));
-        if (_items.isEmpty) return const Center(child: Text('Nenhum registro encontrado'));
-
-        return ListView.separated(
-          itemCount: _items.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
-          itemBuilder: (context, index) {
-            final item = _items[index];
-            final visible = item.entries.where((e) => !_isSensitiveKey(e.key)).take(3).map((e) => '${e.key}: ${e.value}').join(' • ');
-            return ListTile(
-              title: Text(_titleForItem(item)),
-              subtitle: Text(visible),
-              onTap: () async {
-                final result = await Navigator.push<bool?>(
-                  context,
-                  MaterialPageRoute(builder: (_) => EditEntryPage(endpoint: widget.endpoint, entry: item)),
-                );
-                if (result == true) await _load();
-              },
-            );
-          },
+        return StateView(
+          loading: _loading,
+          error: _error == null ? null : 'Erro: $_error',
+          empty: !_loading && _items.isEmpty && _error == null,
+          onRetry: _load,
+          child: ListView.separated(
+            itemCount: _items.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final item = _items[index];
+              final visible = item.entries.where((e) => !_isSensitiveKey(e.key)).take(3).map((e) => '${e.key}: ${e.value}').join(' • ');
+              return ListTile(
+                title: Text(_titleForItem(item)),
+                subtitle: Text(visible),
+                onTap: () async {
+                  final result = await Navigator.push<bool?>(
+                    context,
+                    MaterialPageRoute(builder: (_) => EditEntryPage(endpoint: widget.endpoint, entry: item)),
+                  );
+                  if (result == true) await _load();
+                },
+              );
+            },
+          ),
         );
       }),
     );

@@ -7,8 +7,7 @@ exports.findAll = async (page, limit) => {
     try {
         const { offset, limit: l } = getPaginationParams(page, limit);
         const [rows] = await connection.execute(
-            'SELECT * FROM postos ORDER BY nome LIMIT ? OFFSET ?',
-            [l, offset]
+            `SELECT * FROM postos ORDER BY nome LIMIT ${l} OFFSET ${offset}`
         );
         return rows;
     } finally {
