@@ -19,6 +19,7 @@ const kitsController = require('./kits.controller');
 const processosController = require('./processos.controller');
 const resultadosGeneticosController = require('./resultados_geneticos.controller');
 const assetsResultadosController = require('./assets_resultados.controller');
+const facturacaoController = require('./facturacao.controller');
 
 module.exports = {
   authController,
@@ -36,5 +37,6 @@ module.exports = {
   kitsController,
   processosController,
   resultadosGeneticosController,
-  assetsResultadosController
+  assetsResultadosController,
+  facturacaoController
 };

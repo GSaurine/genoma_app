@@ -17,6 +17,7 @@ const kitsRoutes = require('./kits.routes');
 const processosRoutes = require('./processos.routes');
 const resultadosGeneticosRoutes = require('./resultados_geneticos.routes');
 const assetsResultadosRoutes = require('./assets_resultados.routes');
+const facturacaoRoutes = require('./facturacao.routes');
 
 router.use('/auth', authRoutes);
 router.use('/perfis', perfisRoutes);
@@ -34,5 +35,6 @@ router.use('/kits', kitsRoutes);
 router.use('/processos', processosRoutes);
 router.use('/resultados-geneticos', resultadosGeneticosRoutes);
 router.use('/assets-resultados', assetsResultadosRoutes);
+router.use('/facturacao', facturacaoRoutes);
 
 module.exports = router;

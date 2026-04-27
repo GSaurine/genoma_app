@@ -1,4 +1,7 @@
 const processosRepository = require('../repositories/processos.repository');
+const informacaoClinicaRepository = require('../repositories/informacao_clinica.repository');
+const colheitasRepository = require('../repositories/colheitas.repository');
+const facturacaoRepository = require('../repositories/facturacao.repository');
 const logService = require('./log.service');
 
 exports.listAll = async (page, limit) => {
@@ -12,7 +15,10 @@ exports.getById = async (id) => {
     if (!processo) {
         throw new Error('Processo não encontrado');
     }
-    return processo;
+    const infoClinica = await informacaoClinicaRepository.findByProcessoId(id);
+    const colheita = await colheitasRepository.findByProcessoId(id);
+    const facturacao = await facturacaoRepository.findByProcessoId(id);
+    return { ...processo, informacao_clinica: infoClinica, colheita: colheita, facturacao: facturacao };
 };
 
 exports.create = async (data, user) => {
@@ -26,6 +32,30 @@ exports.create = async (data, user) => {
     }
 
     const processo = await processosRepository.create(data);
+
+    // Salvar informação clínica se fornecida
+    if (data.informacao_clinica) {
+        await informacaoClinicaRepository.create({
+            processo_id: processo.id,
+            ...data.informacao_clinica
+        });
+    }
+
+    // Salvar informação de colheita se fornecida
+    if (data.colheita) {
+        await colheitasRepository.create({
+            processo_id: processo.id,
+            ...data.colheita
+        });
+    }
+
+    // Salvar informação de facturação se fornecida
+    if (data.facturacao) {
+        await facturacaoRepository.create({
+            processo_id: processo.id,
+            ...data.facturacao
+        });
+    }
 
     if (user) {
         await logService.log({

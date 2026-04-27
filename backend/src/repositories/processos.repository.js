@@ -55,8 +55,8 @@ exports.create = async (data) => {
     try {
         const id = uuidv4();
         await connection.execute(
-            'INSERT INTO processos (id, numero_processo, paciente_id, medico_id, posto_id, kit_id, status_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [id, data.numero_processo, data.paciente_id || null, data.medico_id || null, data.posto_id || null, data.kit_id || null, data.status_id || 'Pendente']
+            'INSERT INTO processos (id, numero_processo, paciente_id, medico_id, posto_id, kit_id, status_id, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, data.numero_processo, data.paciente_id || null, data.medico_id || null, data.posto_id || null, data.kit_id || null, data.status_id || 'Pendente', data.notas || null]
         );
         return {
             id,
@@ -97,6 +97,10 @@ exports.update = async (id, data) => {
         if (data.status_id !== undefined) {
             updates.push('status_id = ?');
             values.push(data.status_id);
+        }
+        if (data.notas !== undefined) {
+            updates.push('notas = ?');
+            values.push(data.notas);
         }
         
         if (updates.length === 0) return false;

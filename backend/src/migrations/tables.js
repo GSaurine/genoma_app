@@ -220,6 +220,24 @@ function createTables() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
 
+    // FACTURAÇÃO (16)
+    const createFacturacaoTable = `
+        CREATE TABLE IF NOT EXISTS facturacao (
+            id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            processo_id CHAR(36) NOT NULL,
+            preco_teste DECIMAL(10,2) DEFAULT 0.00,
+            numero_fatura VARCHAR(50),
+            data_fatura DATE,
+            entidade_multibanco VARCHAR(20),
+            referencia_multibanco VARCHAR(20),
+            comissao BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (processo_id) REFERENCES processos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+
     const tables = [
         createPerfisTable,
         createEmpresasTable,
@@ -235,7 +253,8 @@ function createTables() {
         createKitsTable,
         createProcessosTable,
         createResultadosGeneticosTable,
-        createAssetsTable
+        createAssetsTable,
+        createFacturacaoTable
     ];
 
     tables.forEach((query, index) => {

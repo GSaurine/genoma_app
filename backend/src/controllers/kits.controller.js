@@ -28,6 +28,30 @@ exports.create = async (req, res) => {
     }
 };
 
+/**
+ * Endpoint para Regra 1 e 2: Gerar Lote
+ */
+exports.createLote = async (req, res) => {
+    try {
+        const result = await kitsService.createLote(req.body, req.user);
+        res.status(201).json({ message: 'Lote e kits gerados com sucesso', data: result });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+/**
+ * Endpoint para Regra 4: Transferir Kits
+ */
+exports.transferirParaPosto = async (req, res) => {
+    try {
+        const result = await kitsService.transferirParaPosto(req.body, req.user);
+        res.json({ message: 'Transferência concluída', data: result });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
 exports.update = async (req, res) => {
     try {
         const kit = await kitsService.update(req.params.id, req.body, req.user);

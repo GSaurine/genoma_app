@@ -7,7 +7,12 @@ exports.findAll = async (page, limit) => {
     try {
         const { offset, limit: l } = getPaginationParams(page, limit);
         const [rows] = await connection.execute(
-            `SELECT * FROM kits ORDER BY data_validade DESC LIMIT ${l} OFFSET ${offset}`
+            `SELECT k.*, l.numero_lote, e.nome as empresa_nome, p.nome as posto_nome 
+             FROM kits k
+             LEFT JOIN lotes l ON k.lote_id = l.id
+             LEFT JOIN empresas e ON k.empresa_id = e.id
+             LEFT JOIN postos p ON k.posto_id = p.id
+             ORDER BY k.data_validade DESC LIMIT ${l} OFFSET ${offset}`
         );
         return rows;
     } finally {
@@ -39,15 +44,55 @@ exports.create = async (data) => {
     const connection = await pool.getConnection();
     try {
         const id = uuidv4();
-        await connection.execute(
-            'INSERT INTO kits (id, codigo_barras, tipo_kit_id, lote_id, status, data_validade) VALUES (?, ?, ?, ?, ?, ?)',
-            [id, data.codigo_barras, data.tipo_kit_id || null, data.lote_id || null, data.status || 'Disponível', data.data_validade || null]
-        );
+        const query = `
+            INSERT INTO kits (id, numero_kit, tracking, codigo_barras, tipo_kit_id, lote_id, empresa_id, posto_id, status, data_validade) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const values = [
+            id, 
+            data.numero_kit || null,
+            data.tracking || null,
+            data.codigo_barras, 
+            data.tipo_kit_id || null, 
+            data.lote_id || null, 
+            data.empresa_id || null,
+            data.posto_id || null,
+            data.status || 'Na Empresa', 
+            data.data_validade || null
+        ];
+        
+        await connection.execute(query, values);
         return {
             id,
             ...data,
-            status: data.status || 'Disponível'
+            status: data.status || 'Na Empresa'
         };
+    } finally {
+        connection.release();
+    }
+};
+
+exports.bulkCreate = async (kits) => {
+    const connection = await pool.getConnection();
+    try {
+        const query = `
+            INSERT INTO kits (id, numero_kit, tracking, codigo_barras, tipo_kit_id, lote_id, empresa_id, status, data_validade) 
+            VALUES ?
+        `;
+        const values = kits.map(k => [
+            uuidv4(),
+            k.numero_kit,
+            k.tracking,
+            k.codigo_barras,
+            k.tipo_kit_id,
+            k.lote_id,
+            k.empresa_id,
+            k.status || 'Na Empresa',
+            k.data_validade || null
+        ]);
+        
+        await connection.query(query, [values]);
+        return true;
     } finally {
         connection.release();
     }
@@ -59,26 +104,17 @@ exports.update = async (id, data) => {
         const updates = [];
         const values = [];
         
-        if (data.codigo_barras !== undefined) {
-            updates.push('codigo_barras = ?');
-            values.push(data.codigo_barras);
-        }
-        if (data.tipo_kit_id !== undefined) {
-            updates.push('tipo_kit_id = ?');
-            values.push(data.tipo_kit_id);
-        }
-        if (data.lote_id !== undefined) {
-            updates.push('lote_id = ?');
-            values.push(data.lote_id);
-        }
-        if (data.status !== undefined) {
-            updates.push('status = ?');
-            values.push(data.status);
-        }
-        if (data.data_validade !== undefined) {
-            updates.push('data_validade = ?');
-            values.push(data.data_validade);
-        }
+        const fields = [
+            'numero_kit', 'tracking', 'codigo_barras', 'tipo_kit_id', 
+            'lote_id', 'empresa_id', 'posto_id', 'status', 'data_validade'
+        ];
+
+        fields.forEach(field => {
+            if (data[field] !== undefined) {
+                updates.push(`${field} = ?`);
+                values.push(data[field]);
+            }
+        });
         
         if (updates.length === 0) return false;
         
@@ -107,6 +143,21 @@ exports.findByCodigoBarras = async (codigo) => {
     try {
         const [rows] = await connection.execute('SELECT * FROM kits WHERE codigo_barras = ?', [codigo]);
         return rows[0] || null;
+    } finally {
+        connection.release();
+    }
+};
+
+exports.transferirParaPosto = async (kitIds, postoId) => {
+    const connection = await pool.getConnection();
+    try {
+        const query = `
+            UPDATE kits 
+            SET posto_id = ?, status = 'No Posto', empresa_id = NULL 
+            WHERE id IN (${kitIds.map(() => '?').join(',')}) AND status = 'Na Empresa'
+        `;
+        const result = await connection.execute(query, [postoId, ...kitIds]);
+        return result[0].affectedRows;
     } finally {
         connection.release();
     }

@@ -107,7 +107,15 @@ const pacienteValidator = [
     .optional()
     .trim()
     .isLength({ max: 200 })
-    .withMessage('Morada muito longa')
+    .withMessage('Morada muito longa'),
+  body('altura')
+    .optional()
+    .isFloat({ min: 0, max: 3.0 })
+    .withMessage('Altura inválida (metros)'),
+  body('peso')
+    .optional()
+    .isFloat({ min: 0, max: 500.0 })
+    .withMessage('Peso inválido (kg)')
 ];
 
 const pacienteUpdateValidator = [
@@ -137,7 +145,15 @@ const pacienteUpdateValidator = [
     .optional()
     .trim()
     .isLength({ max: 200 })
-    .withMessage('Morada muito longa')
+    .withMessage('Morada muito longa'),
+  body('altura')
+    .optional()
+    .isFloat({ min: 0, max: 3.0 })
+    .withMessage('Altura inválida (metros)'),
+  body('peso')
+    .optional()
+    .isFloat({ min: 0, max: 500.0 })
+    .withMessage('Peso inválido (kg)')
 ];
 
 // Validadores para empresas

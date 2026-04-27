@@ -20,6 +20,7 @@ const processosService = require('./processos.service');
 const resultadosGeneticosService = require('./resultados_geneticos.service');
 const assetsResultadosService = require('./assets_resultados.service');
 const logService = require('./log.service');
+const facturacaoService = require('./facturacao.service');
 
 module.exports = {
   authService,
@@ -38,5 +39,6 @@ module.exports = {
   processosService,
   resultadosGeneticosService,
   assetsResultadosService,
-  logService
+  logService,
+  facturacaoService
 };

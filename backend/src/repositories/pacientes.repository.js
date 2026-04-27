@@ -74,8 +74,8 @@ exports.create = async (data) => {
         const { v4: uuidv4 } = require('uuid');
         const id = uuidv4();
         await connection.execute(
-            'INSERT INTO pacientes (id, nome, data_nascimento, genero, nif, telemovel, email, morada) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, data.nome, data.data_nascimento, data.genero || null, data.nif || null, data.telemovel || null, data.email || null, data.morada || null]
+            'INSERT INTO pacientes (id, nome, data_nascimento, genero, nif, telemovel, email, morada, altura, peso) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, data.nome, data.data_nascimento, data.genero || null, data.nif || null, data.telemovel || null, data.email || null, data.morada || null, data.altura || null, data.peso || null]
         );
         return {
             id,
@@ -86,6 +86,8 @@ exports.create = async (data) => {
             telemovel: data.telemovel || null,
             email: data.email || null,
             morada: data.morada || null,
+            altura: data.altura || null,
+            peso: data.peso || null,
             created_at: new Date()
         };
     } finally {
@@ -126,6 +128,14 @@ exports.update = async (id, data) => {
         if (data.morada !== undefined) {
             updates.push('morada = ?');
             values.push(data.morada);
+        }
+        if (data.altura !== undefined) {
+            updates.push('altura = ?');
+            values.push(data.altura);
+        }
+        if (data.peso !== undefined) {
+            updates.push('peso = ?');
+            values.push(data.peso);
         }
         
         if (updates.length === 0) return false;

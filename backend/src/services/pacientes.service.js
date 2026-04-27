@@ -56,7 +56,9 @@ exports.create = async (data, user) => {
         nif: data.nif ? data.nif.trim() : null,
         telemovel: data.telemovel ? data.telemovel.trim() : null,
         email: data.email ? data.email.trim() : null,
-        morada: data.morada ? data.morada.trim() : null
+        morada: data.morada ? data.morada.trim() : null,
+        altura: data.altura || null,
+        peso: data.peso || null
     });
 
     if (user) {
@@ -118,6 +120,8 @@ exports.update = async (id, data, user) => {
     if (data.telemovel !== undefined) updateData.telemovel = data.telemovel ? data.telemovel.trim() : null;
     if (data.email !== undefined) updateData.email = data.email ? data.email.trim() : null;
     if (data.morada !== undefined) updateData.morada = data.morada ? data.morada.trim() : null;
+    if (data.altura !== undefined) updateData.altura = data.altura;
+    if (data.peso !== undefined) updateData.peso = data.peso;
 
     await pacientesRepository.update(id, updateData);
 

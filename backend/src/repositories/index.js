@@ -15,9 +15,11 @@ const pedidosRepository = require('./pedidos_exames.repository');
 const resultadosRepository = require('./resultados_detalhados.repository');
 const postosRepository = require('./postos.repository');
 const kitsRepository = require('./kits.repository');
+const lotesRepository = require('./lotes.repository');
 const processosRepository = require('./processos.repository');
 const resultadosGeneticosRepository = require('./resultados_geneticos.repository');
 const assetsResultadosRepository = require('./assets_resultados.repository');
+const facturacaoRepository = require('./facturacao.repository');
 
 module.exports = {
   perfisRepository,
@@ -32,7 +34,9 @@ module.exports = {
   resultadosRepository,
   postosRepository,
   kitsRepository,
+  lotesRepository,
   processosRepository,
   resultadosGeneticosRepository,
-  assetsResultadosRepository
+  assetsResultadosRepository,
+  facturacaoRepository
 };
