@@ -5,6 +5,14 @@ class AdminCards extends StatelessWidget {
   final VoidCallback onCreateEmpresa;
   final VoidCallback onCreateKit;
   final VoidCallback onCreateUtilizador;
+  final VoidCallback onCreateProcesso;
+  final VoidCallback onCreatePerfil;
+  final VoidCallback onCreateMedico;
+  final VoidCallback onCreateTeste;
+  final VoidCallback onCreateItem;
+  final VoidCallback onCreatePosto;
+  final VoidCallback onCreateResultado;
+  final VoidCallback onCreateResultadoGenetico;
 
   const AdminCards({
     Key? key,
@@ -12,52 +20,55 @@ class AdminCards extends StatelessWidget {
     required this.onCreateEmpresa,
     required this.onCreateKit,
     required this.onCreateUtilizador,
+    required this.onCreateProcesso,
+    required this.onCreatePerfil,
+    required this.onCreateMedico,
+    required this.onCreateTeste,
+    required this.onCreateItem,
+    required this.onCreatePosto,
+    required this.onCreateResultado,
+    required this.onCreateResultadoGenetico,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Card(
-          child: ListTile(
-            title: const Text('Pacientes'),
-            subtitle: const Text('Criar / gerenciar pacientes'),
-            trailing: ElevatedButton(onPressed: onCreatePaciente, child: const Text('Criar')),
-          ),
-        ),
+        _buildCard('Processos (Exames)', 'Criar novo processo de exame', onCreateProcesso, color: Colors.blue.withOpacity(0.05)),
         const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            title: const Text('Empresas'),
-            subtitle: const Text('Criar / gerenciar empresas'),
-            trailing: ElevatedButton(onPressed: onCreateEmpresa, child: const Text('Criar')),
-          ),
-        ),
+        _buildCard('Pacientes', 'Criar / gerenciar pacientes', onCreatePaciente),
         const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            title: const Text('Kits'),
-            subtitle: const Text('Criar / gerenciar kits'),
-            trailing: ElevatedButton(onPressed: onCreateKit, child: const Text('Criar')),
-          ),
-        ),
+        _buildCard('Empresas', 'Criar / gerenciar empresas', onCreateEmpresa),
         const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            title: const Text('Utilizadores'),
-            subtitle: const Text('Criar / gerenciar utilizadores'),
-            trailing: ElevatedButton(onPressed: onCreateUtilizador, child: const Text('Criar')),
-          ),
-        ),
+        _buildCard('Utilizadores', 'Criar / gerenciar utilizadores', onCreateUtilizador),
         const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            title: const Text('Outros Recursos'),
-            subtitle: const Text('Adicionar seeds ou dados de teste para outras tabelas'),
-            trailing: const Icon(Icons.more_horiz),
-          ),
-        ),
+        _buildCard('Kits', 'Criar / gerenciar kits', onCreateKit),
+        const SizedBox(height: 12),
+        _buildCard('Perfis', 'Criar perfis de acesso', onCreatePerfil),
+        const SizedBox(height: 12),
+        _buildCard('Médicos', 'Criar registo de médico', onCreateMedico),
+        const SizedBox(height: 12),
+        _buildCard('Postos', 'Criar postos de colheita', onCreatePosto),
+        const SizedBox(height: 12),
+        _buildCard('Testes', 'Criar tipos de testes', onCreateTeste),
+        const SizedBox(height: 12),
+        _buildCard('Itens de Pesquisa', 'Criar itens para resultados', onCreateItem),
+        const SizedBox(height: 12),
+        _buildCard('Resultados Detalhados', 'Criar resultados para exames', onCreateResultado),
+        const SizedBox(height: 12),
+        _buildCard('Resultados Genéticos', 'Criar dados genéticos', onCreateResultadoGenetico),
       ],
+    );
+  }
+
+  Widget _buildCard(String title, String subtitle, VoidCallback onPressed, {Color? color}) {
+    return Card(
+      color: color,
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: ElevatedButton(onPressed: onPressed, child: const Text('Criar')),
+      ),
     );
   }
 }

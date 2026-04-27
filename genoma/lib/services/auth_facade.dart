@@ -35,4 +35,8 @@ class AuthFacade {
   Future<Map<String, dynamic>?> fetchCurrentUser() => _bypass ? _mock.fetchCurrentUser() : _real.fetchCurrentUser();
   Map<String, dynamic>? get currentUser => _bypass ? _mock.currentUser : _real.currentUser;
   bool get isAdmin => _bypass ? _mock.isAdmin : _real.isAdmin;
+  bool get isMedico {
+    final perfil = currentUser?['perfil_nome']?.toString().toLowerCase();
+    return perfil != null && perfil.contains('medico');
+  }
 }

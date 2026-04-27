@@ -1,13 +1,13 @@
 import 'package:genoma/core/config/dioConfig.dart';
 
-class PerfisService {
-  PerfisService._internal();
-  static final PerfisService _instance = PerfisService._internal();
-  factory PerfisService() => _instance;
+class ResultadosService {
+  ResultadosService._internal();
+  static final ResultadosService _instance = ResultadosService._internal();
+  factory ResultadosService() => _instance;
 
-  Future<List<Map<String, dynamic>>> fetchPerfis() async {
+  Future<List<Map<String, dynamic>>> fetchResultados() async {
     final api = APIService();
-    final resp = await api.getRequest('/perfis');
+    final resp = await api.getRequest('/resultados');
     final body = resp.data;
     if (body is Map && body['data'] is List) {
       return List<Map<String, dynamic>>.from((body['data'] as List).map((e) => Map<String, dynamic>.from(e as Map)));
@@ -15,9 +15,9 @@ class PerfisService {
     return [];
   }
 
-  Future<Map<String, dynamic>?> createPerfil(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>?> createResultado(Map<String, dynamic> data) async {
     final api = APIService();
-    final resp = await api.postRequest('/perfis', data: data);
+    final resp = await api.postRequest('/resultados', data: data);
     if (resp.statusCode == 200 || resp.statusCode == 201) {
       final responseData = resp.data;
       if (responseData is Map) {

@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:genoma/pages/table_list_page.dart';
 import 'package:genoma/services/paciente_service.dart';
 import 'package:genoma/services/empresas_service.dart';
 import 'package:genoma/services/kits_service.dart';
 import 'package:genoma/services/perfis_service.dart';
 import 'package:genoma/services/utilizadores_service.dart';
+import 'package:genoma/services/processos_service.dart';
+import 'package:genoma/services/medicos_service.dart';
+import 'package:genoma/services/postos_service.dart';
+import 'package:genoma/services/testes_service.dart';
+import 'package:genoma/services/itens_pesquisa_service.dart';
+import 'package:genoma/services/resultados_service.dart';
+import 'package:genoma/services/resultados_geneticos_service.dart';
 import 'package:genoma/services/auth_facade.dart';
 import 'package:genoma/core/config/dioConfig.dart';
 import 'package:genoma/core/ui/notification_service.dart';
@@ -25,12 +31,18 @@ class _AdminHomeState extends State<AdminHome> {
   final _kitsService = KitsService();
   final _perfisService = PerfisService();
   final _utilizadoresService = UtilizadoresService();
+  final _processosService = ProcessosService();
+  final _medicosService = MedicosService();
+  final _postosService = PostosService();
+  final _testesService = TestesService();
+  final _itensService = ItensPesquisaService();
+  final _resultadosService = ResultadosService();
+  final _resultadosGeneticosService = ResultadosGeneticosService();
 
   @override
   void initState() {
     super.initState();
     _ensureAdmin();
-    // Debug log to help identify runtime errors that cause black screen
     try {
       // ignore: avoid_print
       print('AdminHome.initState currentUser=${AuthFacade().currentUser}');
@@ -41,7 +53,6 @@ class _AdminHomeState extends State<AdminHome> {
   }
 
   Future<void> _ensureAdmin() async {
-    // Garante que o perfil do utilizador esteja carregado e verifica permissões
     try {
       final token = await AuthFacade().getSavedToken();
       if (token != null && token.isNotEmpty) APIService().token = token;
@@ -61,8 +72,6 @@ class _AdminHomeState extends State<AdminHome> {
     final result = await showCreatePacienteDialog(context, _pacienteService);
     if (result == true) {
       NotificationService().showSuccess('Paciente criado com sucesso');
-    } else if (result == false) {
-      NotificationService().showError('Operação cancelada ou falhou');
     }
   }
 
@@ -81,6 +90,48 @@ class _AdminHomeState extends State<AdminHome> {
     if (result == true) NotificationService().showSuccess('Utilizador criado com sucesso');
   }
 
+  Future<void> _showCreateProcessoDialog() async {
+    final result = await showCreateProcessoDialog(context, _processosService, _pacienteService, _medicosService, _kitsService, _postosService);
+    if (result == true) {
+      NotificationService().showSuccess('Processo criado com sucesso');
+    }
+  }
+
+  Future<void> _showCreatePerfilDialog() async {
+    final result = await showCreatePerfilDialog(context, _perfisService);
+    if (result == true) NotificationService().showSuccess('Perfil criado com sucesso');
+  }
+
+  Future<void> _showCreateMedicoDialog() async {
+    final result = await showCreateMedicoDialog(context, _medicosService, _utilizadoresService);
+    if (result == true) NotificationService().showSuccess('Médico criado com sucesso');
+  }
+
+  Future<void> _showCreateTesteDialog() async {
+    final result = await showCreateTesteDialog(context, _testesService);
+    if (result == true) NotificationService().showSuccess('Teste criado com sucesso');
+  }
+
+  Future<void> _showCreateItemDialog() async {
+    final result = await showCreateItemDialog(context, _itensService);
+    if (result == true) NotificationService().showSuccess('Item de pesquisa criado com sucesso');
+  }
+
+  Future<void> _showCreatePostoDialog() async {
+    final result = await showCreatePostoDialog(context, _postosService, _empresasService);
+    if (result == true) NotificationService().showSuccess('Posto criado com sucesso');
+  }
+
+  Future<void> _showCreateResultadoDialog() async {
+    final result = await showCreateResultadoDialog(context, _resultadosService, _processosService, _itensService);
+    if (result == true) NotificationService().showSuccess('Resultado criado com sucesso');
+  }
+
+  Future<void> _showCreateResultadoGeneticoDialog() async {
+    final result = await showCreateResultadoGeneticoDialog(context, _resultadosGeneticosService, _processosService);
+    if (result == true) NotificationService().showSuccess('Resultado genético criado com sucesso');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +140,6 @@ class _AdminHomeState extends State<AdminHome> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
             onPressed: () async {
               await AuthFacade().logout();
               if (!mounted) return;
@@ -106,6 +156,14 @@ class _AdminHomeState extends State<AdminHome> {
             onCreateEmpresa: _showCreateEmpresaDialog,
             onCreateKit: _showCreateKitDialog,
             onCreateUtilizador: _showCreateUtilizadorDialog,
+            onCreateProcesso: _showCreateProcessoDialog,
+            onCreatePerfil: _showCreatePerfilDialog,
+            onCreateMedico: _showCreateMedicoDialog,
+            onCreateTeste: _showCreateTesteDialog,
+            onCreateItem: _showCreateItemDialog,
+            onCreatePosto: _showCreatePostoDialog,
+            onCreateResultado: _showCreateResultadoDialog,
+            onCreateResultadoGenetico: _showCreateResultadoGeneticoDialog,
           ),
           const SizedBox(height: 12),
           Card(
@@ -123,12 +181,14 @@ class _AdminHomeState extends State<AdminHome> {
                       TableChip(label: 'Empresas', endpoint: '/empresas'),
                       TableChip(label: 'Perfis', endpoint: '/perfis'),
                       TableChip(label: 'Kits', endpoint: '/kits'),
-                      TableChip(label: 'Pedidos', endpoint: '/pedidos'),
                       TableChip(label: 'Testes', endpoint: '/testes'),
                       TableChip(label: 'Itens', endpoint: '/itens'),
                       TableChip(label: 'Medicos', endpoint: '/medicos'),
+                      TableChip(label: 'Postos', endpoint: '/postos'),
+                      TableChip(label: 'Processos', endpoint: '/processos'),
                       TableChip(label: 'Resultados', endpoint: '/resultados'),
                       TableChip(label: 'Resultados Genéticos', endpoint: '/resultados-geneticos'),
+                      TableChip(label: 'Faturação', endpoint: '/facturacao'),
                     ],
                   ),
                 )

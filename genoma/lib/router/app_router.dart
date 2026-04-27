@@ -3,12 +3,14 @@ import '../pages/homePage.dart';
 import '../pages/loginPage.dart';
 import '../pages/splashPage.dart';
 import '../pages/admin_home.dart';
+import '../pages/medico_home.dart';
 
 class AppRouter {
   static const String splashRoute = '/';
   static const String loginRoute = '/login';
   static const String homeRoute = '/home';
   static const String adminRoute = '/admin';
+  static const String medicoRoute = '/medico-home';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -20,6 +22,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const Homepage());
       case adminRoute:
         return MaterialPageRoute(builder: (_) => const AdminHome());
+      case medicoRoute:
+        return MaterialPageRoute(builder: (_) => const MedicoHome());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:genoma/services/auth_facade.dart';
-import 'package:genoma/core/config/dioConfig.dart';
 import 'package:genoma/core/ui/notification_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -18,7 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    debugPrint('LoginPage.initState');
     _checkAlreadyAuthenticated();
   }
 
@@ -26,7 +24,12 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final initialized = await AuthFacade().initializeFromSavedToken();
       if (initialized && mounted) {
-        final target = AuthFacade().isAdmin ? '/admin' : '/home';
+        String target = '/home';
+        if (AuthFacade().isAdmin) {
+          target = '/admin';
+        } else if (AuthFacade().isMedico) {
+          target = '/medico-home';
+        }
         Navigator.pushReplacementNamed(context, target);
       }
     } catch (_) {}
@@ -46,30 +49,18 @@ class _LoginPageState extends State<LoginPage> {
       await AuthFacade().login(email, password);
       if (!mounted) return;
 
-      // Debug: log token, user and role to help diagnose post-login black screen
-      final token = APIService().token;
-      debugPrint('Auth login successful — token: $token');
-      debugPrint('Auth currentUser: ${AuthFacade().currentUser}');
-      debugPrint('Auth isAdmin: ${AuthFacade().isAdmin}');
-
       final isAdmin = AuthFacade().isAdmin;
-      // Use microtask to avoid navigator during an unstable frame and catch navigation errors
-      try {
-        if (mounted) {
-          if (isAdmin) {
-            Future.microtask(() => Navigator.pushReplacementNamed(context, '/admin'));
-          } else {
-            Future.microtask(() => Navigator.pushReplacementNamed(context, '/home'));
-          }
-        }
-      } catch (navErr, navSt) {
-        debugPrint('Navigation error after login: $navErr\n$navSt');
-        if (mounted) {
-          NotificationService().showError('Erro na navegação: ${navErr.toString()}');
-        }
+      final isMedico = AuthFacade().isMedico;
+      
+      String target = '/home';
+      if (isAdmin) {
+        target = '/admin';
+      } else if (isMedico) {
+        target = '/medico-home';
       }
-    } catch (e, st) {
-      debugPrint('Login error: $e\n$st');
+
+      Navigator.pushReplacementNamed(context, target);
+    } catch (e) {
       if (mounted) {
         NotificationService().showError('Erro ao efetuar login: ${e.toString()}');
       }
@@ -80,45 +71,56 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('LoginPage.build');
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('LOGIN PAGE (debug)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            // Logo da empresa (fallback para evitar crash se o asset não existir)
-            Image.asset(
-              'assets/logo.png',
-              height: 100,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.science_outlined, size: 100, color: Theme.of(context).primaryColor);
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Campos de e-mail e senha
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'E-mail'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _loading ? null : _login,
-              child: _loading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Entrar'),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 60),
+              Image.asset(
+                'assets/logo.png',
+                height: 120,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(Icons.science_outlined, size: 100, color: Theme.of(context).primaryColor);
+                },
+              ),
+              const SizedBox(height: 40),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'E-mail',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Senha',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _login,
+                  child: _loading
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Entrar', style: TextStyle(fontSize: 16)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

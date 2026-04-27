@@ -111,7 +111,17 @@ class _HomepageState extends State<Homepage> {
           itemBuilder: (context, index) {
             final p = _pacientes[index];
             final name = (p['nome'] ?? '') as String;
-            final subtitle = (p['email'] ?? p['telemovel'] ?? '') as String;
+            String subtitle = (p['email'] ?? p['telemovel'] ?? '') as String;
+            
+            final List<String> details = [];
+            if (p['altura'] != null) details.add('${p['altura']}m');
+            if (p['peso'] != null) details.add('${p['peso']}kg');
+            
+            if (details.isNotEmpty) {
+              if (subtitle.isNotEmpty) subtitle += ' • ';
+              subtitle += details.join(' • ');
+            }
+
             return ListTile(
               leading: CircleAvatar(child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?')),
               title: Text(name.isNotEmpty ? name : '—'),
