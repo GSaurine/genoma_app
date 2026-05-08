@@ -18,6 +18,15 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.loginPaciente = async (req, res) => {
+    try {
+        const token = await authService.loginPaciente(req.body);
+        res.json({ token });
+    } catch (err) {
+        res.status(401).json({ error: err.message });
+    }
+};
+
 exports.me = async (req, res) => {
     try {
         const user = await authService.getUserById(req.user.id);

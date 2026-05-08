@@ -15,8 +15,13 @@ class MockAuthService {
     _token = 'mock-token-${email.hashCode}';
     APIService().token = _token;
 
-    final role = email.toLowerCase().contains('admin') ? 'Admin' : 'User';
-    _currentUser = {'email': email, 'perfil_nome': role};
+    String role = 'User';
+    if (email.toLowerCase().contains('admin')) {
+      role = 'Admin';
+    } else if (email.toLowerCase().contains('medico')) {
+      role = 'Médico';
+    }
+    _currentUser = {'email': email, 'perfil_nome': role, 'nome': 'Médico Mock'};
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', _token);

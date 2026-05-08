@@ -77,6 +77,7 @@ Este ficheiro lista todas as tabelas e os seus atributos conforme as migrações
 | nif | VARCHAR(20) | UNIQUE |
 | telemovel | VARCHAR(20) | |
 | email | VARCHAR(100) | |
+| password_hash | TEXT | |
 | morada | TEXT | |
 | altura | DECIMAL(5,2) | |
 | peso | DECIMAL(5,2) | |

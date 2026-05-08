@@ -34,6 +34,32 @@ class AuthService {
     }
   }
 
+  /// Faz login como paciente e persiste o token.
+  Future<void> loginPaciente(String email, String password) async {
+    final api = APIService();
+    final resp = await api.postRequest('/auth/login-paciente', data: {
+      'email': email,
+      'password': password,
+    });
+
+    final token = resp.data is Map ? resp.data['token'] : resp.data;
+    if (token == null || token is! String || token.isEmpty) {
+      throw Exception('Token inválido retornado pela API');
+    }
+
+    // Persistir token localmente e aplicar no client
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
+    api.token = token;
+    
+    // Tenta buscar o perfil do utilizador imediatamente
+    try {
+      await fetchCurrentUser();
+    } catch (_) {
+      // não falha o login se o perfil não puder ser carregado
+    }
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
@@ -52,7 +78,22 @@ class AuthService {
       final api = APIService();
       final resp = await api.getRequest('/auth/me');
       if (resp.data is Map) {
-        _currentUser = Map<String, dynamic>.from(resp.data as Map);
+        final userData = Map<String, dynamic>.from(resp.data as Map);
+        
+        // Se não for admin, tenta ver se existe na tabela de médicos
+        final perfil = userData['perfil_nome']?.toString().toLowerCase() ?? '';
+        if (!perfil.contains('admin')) {
+          try {
+            final medResp = await api.getRequest('/medicos/${userData['id']}');
+            if (medResp.data != null && medResp.data is Map) {
+              userData.addAll(Map<String, dynamic>.from(medResp.data as Map));
+            }
+          } catch (_) {
+            // Se falhar, talvez não seja médico ou endpoint não exista
+          }
+        }
+
+        _currentUser = userData;
         return _currentUser;
       }
     } catch (_) {

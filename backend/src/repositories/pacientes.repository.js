@@ -48,7 +48,7 @@ exports.findByEmail = async (email) => {
     const connection = await pool.getConnection();
     try {
         const [rows] = await connection.execute('SELECT * FROM pacientes WHERE email = ? AND ativo = TRUE', [email]);
-        return rows;
+        return rows[0] || null;
     } finally {
         connection.release();
     }
@@ -74,8 +74,8 @@ exports.create = async (data) => {
         const { v4: uuidv4 } = require('uuid');
         const id = uuidv4();
         await connection.execute(
-            'INSERT INTO pacientes (id, nome, data_nascimento, genero, nif, telemovel, email, morada, altura, peso) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, data.nome, data.data_nascimento, data.genero || null, data.nif || null, data.telemovel || null, data.email || null, data.morada || null, data.altura || null, data.peso || null]
+            'INSERT INTO pacientes (id, nome, data_nascimento, genero, nif, telemovel, email, password_hash, morada, altura, peso) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, data.nome, data.data_nascimento, data.genero || null, data.nif || null, data.telemovel || null, data.email || null, data.password_hash || null, data.morada || null, data.altura || null, data.peso || null]
         );
         return {
             id,
@@ -124,6 +124,10 @@ exports.update = async (id, data) => {
         if (data.email !== undefined) {
             updates.push('email = ?');
             values.push(data.email);
+        }
+        if (data.password_hash !== undefined) {
+            updates.push('password_hash = ?');
+            values.push(data.password_hash);
         }
         if (data.morada !== undefined) {
             updates.push('morada = ?');

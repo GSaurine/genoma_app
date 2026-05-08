@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../pages/homePage.dart';
 import '../pages/loginPage.dart';
+import '../pages/loginPacientePage.dart';
 import '../pages/splashPage.dart';
 import '../pages/admin_home.dart';
 import '../pages/medico_home.dart';
@@ -8,6 +9,7 @@ import '../pages/medico_home.dart';
 class AppRouter {
   static const String splashRoute = '/';
   static const String loginRoute = '/login';
+  static const String loginPacienteRoute = '/login-paciente';
   static const String homeRoute = '/home';
   static const String adminRoute = '/admin';
   static const String medicoRoute = '/medico-home';
@@ -18,6 +20,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const Splashpage());
       case loginRoute:
         return MaterialPageRoute(builder: (_) => const LoginPage());
+      case loginPacienteRoute:
+        return MaterialPageRoute(builder: (_) => const LoginPacientePage());
       case homeRoute:
         return MaterialPageRoute(builder: (_) => const Homepage());
       case adminRoute:

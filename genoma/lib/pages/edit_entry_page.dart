@@ -27,12 +27,6 @@ class _EditEntryPageState extends State<EditEntryPage> {
     });
   }
 
-  @override
-  void dispose() {
-    for (final c in _controllers.values) c.dispose();
-    super.dispose();
-  }
-
   bool _isSensitiveKey(String key) {
     final k = key.toLowerCase();
     return k.contains('hash') || k.contains('password') || k.contains('senha') || k.contains('token') || k.contains('secret') || k.contains('apikey') || k.contains('api_key');
@@ -50,6 +44,10 @@ class _EditEntryPageState extends State<EditEntryPage> {
       if (k == 'id') return;
       data[k] = c.text.isEmpty ? null : c.text;
     });
+
+    if (widget.endpoint.contains('pacientes') && _passwordController.text.isNotEmpty) {
+      data['password'] = _passwordController.text;
+    }
 
     setState(() => _saving = true);
     try {
@@ -103,6 +101,8 @@ class _EditEntryPageState extends State<EditEntryPage> {
   @override
   Widget build(BuildContext context) {
     final keys = _controllers.keys.toList();
+    final isPaciente = widget.endpoint.contains('pacientes');
+
     return Scaffold(
       appBar: AppBar(title: const Text('Editar registro'), actions: [
         IconButton(
@@ -116,17 +116,30 @@ class _EditEntryPageState extends State<EditEntryPage> {
         child: Column(
           children: [
             Expanded(
-              child: ListView.separated(
-                itemCount: keys.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final k = keys[index];
-                  return TextField(
-                    controller: _controllers[k],
-                    decoration: InputDecoration(labelText: k),
-                    enabled: k == 'id' ? false : true,
-                  );
-                },
+              child: ListView(
+                children: [
+                  ...keys.map((k) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: TextField(
+                      controller: _controllers[k],
+                      decoration: InputDecoration(labelText: k),
+                      enabled: k == 'id' ? false : true,
+                    ),
+                  )).toList(),
+                  if (isPaciente) ...[
+                    const Divider(height: 32),
+                    const Text('Alterar Senha do Paciente', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nova Senha (deixe vazio para não alterar)',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                    ),
+                  ],
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -140,4 +153,14 @@ class _EditEntryPageState extends State<EditEntryPage> {
       ),
     );
   }
+
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    for (final c in _controllers.values) c.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
 }

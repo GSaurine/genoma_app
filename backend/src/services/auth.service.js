@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/utilizadores.repository');
+const pacientesRepository = require('../repositories/pacientes.repository');
 
 exports.register = async (data) => {
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -32,6 +33,29 @@ exports.login = async ({ email, password }) => {
         {
             id: user.id,
             role: user.perfil_nome || 'user'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '8h' }
+    );
+
+    return token;
+};
+
+exports.loginPaciente = async ({ email, password }) => {
+    const paciente = await pacientesRepository.findByEmail(email);
+
+    if (!paciente) throw new Error('Paciente não encontrado');
+
+    if (!paciente.password_hash) throw new Error('Paciente não possui senha configurada. Contacte o administrador.');
+
+    const validPassword = await bcrypt.compare(password, paciente.password_hash);
+
+    if (!validPassword) throw new Error('Password inválida');
+
+    const token = jwt.sign(
+        {
+            id: paciente.id,
+            role: 'Paciente'
         },
         process.env.JWT_SECRET,
         { expiresIn: '8h' }

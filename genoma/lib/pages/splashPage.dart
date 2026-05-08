@@ -24,7 +24,13 @@ class _SplashpageState extends State<Splashpage> {
     try {
       final ok = await AuthFacade().initializeFromSavedToken();
       if (ok) {
-        route = AuthFacade().isAdmin ? '/admin' : '/home';
+        if (AuthFacade().isAdmin) {
+          route = '/admin';
+        } else if (AuthFacade().isMedico) {
+          route = '/medico-home';
+        } else {
+          route = '/home';
+        }
       }
     } catch (e, st) {
       debugPrint('Splash _checkAuth error: $e\n$st');

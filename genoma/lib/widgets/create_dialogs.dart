@@ -18,6 +18,7 @@ Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pac
   final emailController = TextEditingController();
   final nifController = TextEditingController();
   final telController = TextEditingController();
+  final passwordController = TextEditingController();
   final alturaController = TextEditingController();
   final pesoController = TextEditingController();
 
@@ -57,6 +58,7 @@ Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pac
             TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
             TextField(controller: nifController, decoration: const InputDecoration(labelText: 'NIF')),
             TextField(controller: telController, decoration: const InputDecoration(labelText: 'Telemóvel')),
+            TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Senha de Acesso'), obscureText: true),
             TextField(
               controller: alturaController, 
               decoration: const InputDecoration(labelText: 'Altura (m)', hintText: 'Ex: 1.75'),
@@ -89,6 +91,7 @@ Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pac
               'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
               'nif': nifController.text.trim().isEmpty ? null : nifController.text.trim(),
               'telemovel': telController.text.trim().isEmpty ? null : telController.text.trim(),
+              'password': passwordController.text.trim().isEmpty ? null : passwordController.text.trim(),
               'altura': double.tryParse(alturaController.text.replaceAll(',', '.')),
               'peso': double.tryParse(pesoController.text.replaceAll(',', '.')),
             };

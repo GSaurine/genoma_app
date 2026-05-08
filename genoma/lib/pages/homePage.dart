@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:genoma/services/paciente_service.dart';
 import 'package:genoma/services/auth_facade.dart';
+import 'package:genoma/services/processos_service.dart';
+import 'package:genoma/services/medicos_service.dart';
+import 'package:genoma/services/kits_service.dart';
+import 'package:genoma/services/postos_service.dart';
+import 'package:genoma/widgets/create_dialogs.dart';
+import 'package:genoma/core/ui/notification_service.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -11,6 +17,11 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   final _service = PacienteService();
+  final _processosService = ProcessosService();
+  final _medicosService = MedicosService();
+  final _kitsService = KitsService();
+  final _postosService = PostosService();
+
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _pacientes = [];
@@ -18,7 +29,16 @@ class _HomepageState extends State<Homepage> {
   @override
   void initState() {
     super.initState();
+    _checkRedirect();
     _ensureAuthenticatedThenLoad();
+  }
+
+  void _checkRedirect() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (AuthFacade().isMedico) {
+        Navigator.pushReplacementNamed(context, '/medico-home');
+      }
+    });
   }
 
   Future<void> _ensureAuthenticatedThenLoad() async {
@@ -59,8 +79,68 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
+  Future<void> _handleCreatePaciente() async {
+    final result = await showCreatePacienteDialog(context, _service);
+    if (result == true) {
+      NotificationService().showSuccess('Paciente criado com sucesso');
+      _loadPacientes();
+    }
+  }
+
+  Future<void> _handleCreateProcesso() async {
+    final result = await showCreateProcessoDialog(
+      context,
+      _processosService,
+      _service,
+      _medicosService,
+      _kitsService,
+      _postosService,
+    );
+    if (result == true) {
+      NotificationService().showSuccess('Novo exame iniciado com sucesso');
+    }
+  }
+
+  void _showCreateMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Criar Novo', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.person_add, color: Colors.blue),
+                title: const Text('Novo Paciente'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleCreatePaciente();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.science, color: Colors.green),
+                title: const Text('Novo Exame'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleCreateProcesso();
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMedico = AuthFacade().isMedico;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pacientes'),
@@ -130,6 +210,13 @@ class _HomepageState extends State<Homepage> {
           },
         );
       }),
+      floatingActionButton: isMedico
+          ? FloatingActionButton.small(
+              onPressed: _showCreateMenu,
+              tooltip: 'Adicionar',
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

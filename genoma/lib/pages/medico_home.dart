@@ -122,6 +122,42 @@ class _MedicoHomeState extends State<MedicoHome> {
     );
   }
 
+  void _showCreateMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Criar Novo', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.person_add, color: Colors.blue),
+                title: const Text('Novo Paciente'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleCreatePaciente();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.science, color: Colors.green),
+                title: const Text('Novo Exame'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleCreateProcesso();
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,60 +176,115 @@ class _MedicoHomeState extends State<MedicoHome> {
           : RefreshIndicator(
               onRefresh: _loadInitialData,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 children: [
-                  Text(
-                    'Bem-vindo, Dr(a). ${_userData?['nome']?.split(' ')[0] ?? ''}',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _QuickActionCard(
-                          title: 'Novo Paciente',
-                          icon: Icons.person_add,
-                          color: Colors.blue,
-                          onTap: _handleCreatePaciente,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _QuickActionCard(
-                          title: 'Novo Exame',
-                          icon: Icons.science,
-                          color: Colors.green,
-                          onTap: _handleCreateProcesso,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  const Text('Pacientes Recentes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  if (_pacientes.isEmpty)
-                    const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text('Nenhum paciente registado ainda.'),
-                      ),
-                    )
-                  else
-                    ..._pacientes.take(5).map((p) => Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: const CircleAvatar(child: Icon(Icons.person)),
-                            title: Text(p['nome'] ?? 'Sem nome'),
-                            subtitle: Text(p['email'] ?? p['nif'] ?? ''),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              // Ver detalhes futuramente
-                            },
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.blue.shade100,
+                                child: Icon(Icons.person, size: 40, color: Colors.blue.shade800),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _userData?['nome'] ?? 'Dr(a). Médico',
+                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      _userData?['email'] ?? 'N/A',
+                                      style: TextStyle(color: Colors.grey.shade600),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        )),
+                          const Divider(height: 32),
+                          if (_userData?['num_ordem'] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.assignment_ind, size: 18, color: Colors.blue),
+                                  const SizedBox(width: 8),
+                                  Text('Nº Ordem: ${_userData?['num_ordem']}'),
+                                ],
+                              ),
+                            ),
+                          Row(
+                            children: [
+                              const Icon(Icons.badge, size: 18, color: Colors.blue),
+                              const SizedBox(width: 8),
+                              Text('Perfil: ${_userData?['perfil_nome'] ?? 'Médico'}'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  const Text(
+                    'Ações Rápidas',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 70,
+                    child: ElevatedButton.icon(
+                      onPressed: _handleCreatePaciente,
+                      icon: const Icon(Icons.person_add, size: 28),
+                      label: const Text(
+                        'CRIAR NOVO PACIENTE',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 70,
+                    child: ElevatedButton.icon(
+                      onPressed: _handleCreateProcesso,
+                      icon: const Icon(Icons.science, size: 28),
+                      label: const Text(
+                        'INICIAR NOVO EXAME / PROCESSO',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 2,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: _showCreateMenu,
+        tooltip: 'Adicionar',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 const pacientesRepository = require('../repositories/pacientes.repository');
 const logService = require('./log.service');
+const bcrypt = require('bcrypt');
 
 exports.listAll = async (user) => {
     return await pacientesRepository.findAll();
@@ -49,6 +50,11 @@ exports.create = async (data, user) => {
         }
     }
 
+    let password_hash = null;
+    if (data.password) {
+        password_hash = await bcrypt.hash(data.password, 10);
+    }
+
     const paciente = await pacientesRepository.create({
         nome: data.nome.trim(),
         data_nascimento: data.data_nascimento,
@@ -56,6 +62,7 @@ exports.create = async (data, user) => {
         nif: data.nif ? data.nif.trim() : null,
         telemovel: data.telemovel ? data.telemovel.trim() : null,
         email: data.email ? data.email.trim() : null,
+        password_hash,
         morada: data.morada ? data.morada.trim() : null,
         altura: data.altura || null,
         peso: data.peso || null
@@ -122,6 +129,10 @@ exports.update = async (id, data, user) => {
     if (data.morada !== undefined) updateData.morada = data.morada ? data.morada.trim() : null;
     if (data.altura !== undefined) updateData.altura = data.altura;
     if (data.peso !== undefined) updateData.peso = data.peso;
+
+    if (data.password) {
+        updateData.password_hash = await bcrypt.hash(data.password, 10);
+    }
 
     await pacientesRepository.update(id, updateData);
 
