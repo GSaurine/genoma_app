@@ -10,6 +10,10 @@ exports.listAll = async (page, limit) => {
     return { processos, total };
 };
 
+exports.listByPacienteId = async (pacienteId) => {
+    return await processosRepository.findByPacienteId(pacienteId);
+};
+
 exports.getById = async (id) => {
     const processo = await processosRepository.findById(id);
     if (!processo) {

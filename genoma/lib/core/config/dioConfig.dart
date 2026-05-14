@@ -110,23 +110,29 @@ class APIService {
     if (e.error is SocketException) return NoInternetConnectionException(e.message);
 
     final status = e.response?.statusCode ?? 0;
+    String? serverMsg;
+    if (e.response?.data is Map) {
+      serverMsg = e.response?.data['error'] ?? e.response?.data['message'];
+    }
+    final displayMsg = serverMsg ?? e.message;
+
     switch (status) {
       case 400:
-        return BadRequestException(e.message);
+        return BadRequestException(displayMsg);
       case 401:
-        return UnauthorizedException(e.message);
+        return UnauthorizedException(displayMsg);
       case 403:
-        return ForbiddenException(e.message);
+        return ForbiddenException(displayMsg);
       case 404:
-        return NotFoundException(e.message);
+        return NotFoundException(displayMsg);
       case 409:
-        return ConflictException(e.message);
+        return ConflictException(displayMsg);
       case 429:
-        return TooManyRequestsException(e.message);
+        return TooManyRequestsException(displayMsg);
       case 500:
-        return InternalServerErrorException(e.message);
+        return InternalServerErrorException(displayMsg);
       default:
-        return Exception(e.message);
+        return Exception(displayMsg);
     }
   }
 }

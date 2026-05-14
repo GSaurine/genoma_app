@@ -134,3 +134,23 @@ exports.findByNumero = async (numero) => {
         connection.release();
     }
 };
+
+exports.findByPacienteId = async (pacienteId) => {
+    const connection = await pool.getConnection();
+    try {
+        const [rows] = await connection.execute(
+            `SELECT p.*, pac.nome as paciente_nome, med.num_ordem as medico_ordem, pos.nome as posto_nome, k.codigo_barras as kit_codigo 
+             FROM processos p
+             LEFT JOIN pacientes pac ON p.paciente_id = pac.id
+             LEFT JOIN medicos med ON p.medico_id = med.utilizador_id
+             LEFT JOIN postos pos ON p.posto_id = pos.id
+             LEFT JOIN kits k ON p.kit_id = k.id
+             WHERE p.paciente_id = ?
+             ORDER BY p.data_entrada DESC`,
+            [pacienteId]
+        );
+        return rows;
+    } finally {
+        connection.release();
+    }
+};

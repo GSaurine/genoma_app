@@ -30,7 +30,7 @@ class AuthFacade {
   }
 
   Future<void> login(String email, String password) => _bypass ? _mock.login(email, password) : _real.login(email, password);
-  Future<void> loginPaciente(String email, String password) => _bypass ? _mock.login(email, password) : _real.loginPaciente(email, password);
+  Future<void> loginPaciente(String email, String password) => _bypass ? _mock.loginPaciente(email, password) : _real.loginPaciente(email, password);
   Future<void> logout() => _bypass ? _mock.logout() : _real.logout();
   Future<String?> getSavedToken() => _bypass ? _mock.getSavedToken() : _real.getSavedToken();
   Future<Map<String, dynamic>?> fetchCurrentUser() => _bypass ? _mock.fetchCurrentUser() : _real.fetchCurrentUser();

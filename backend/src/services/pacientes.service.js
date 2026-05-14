@@ -19,6 +19,8 @@ exports.search = async (nome, user) => {
 
 exports.create = async (data, user) => {
     // Validações
+    console.log('DEBUG: Criando paciente com dados:', { ...data, password: data.password ? '******' : null });
+    
     if (!data.nome || data.nome.trim() === '') {
         throw new Error('Nome do paciente é obrigatório');
     }
@@ -27,11 +29,22 @@ exports.create = async (data, user) => {
         throw new Error('Data de nascimento é obrigatória');
     }
 
-    // Validar data de nascimento
-    const dataNasc = new Date(data.data_nascimento);
+    // Normalizar e validar data de nascimento
+    let data_nascimento = data.data_nascimento;
+    if (typeof data_nascimento === 'string' && data_nascimento.includes('T')) {
+        data_nascimento = data_nascimento.split('T')[0];
+    }
+
+    const dataNasc = new Date(data_nascimento);
     const hoje = new Date();
-    if (dataNasc >= hoje) {
-        throw new Error('Data de nascimento inválida');
+    hoje.setHours(23, 59, 59, 999); // Permitir datas de hoje
+
+    if (isNaN(dataNasc.getTime())) {
+        throw new Error('Formato de data de nascimento inválido');
+    }
+
+    if (dataNasc > hoje) {
+        throw new Error('Data de nascimento não pode ser no futuro');
     }
 
     // Validar NIF se fornecido
@@ -57,7 +70,7 @@ exports.create = async (data, user) => {
 
     const paciente = await pacientesRepository.create({
         nome: data.nome.trim(),
-        data_nascimento: data.data_nascimento,
+        data_nascimento, // Usar data normalizada YYYY-MM-DD
         genero: data.genero || null,
         nif: data.nif ? data.nif.trim() : null,
         telemovel: data.telemovel ? data.telemovel.trim() : null,
@@ -95,11 +108,22 @@ exports.update = async (id, data, user) => {
         }
     }
 
+    let data_nascimento = data.data_nascimento;
     if (data.data_nascimento !== undefined) {
-        const dataNasc = new Date(data.data_nascimento);
+        if (typeof data_nascimento === 'string' && data_nascimento.includes('T')) {
+            data_nascimento = data_nascimento.split('T')[0];
+        }
+
+        const dataNasc = new Date(data_nascimento);
         const hoje = new Date();
-        if (dataNasc >= hoje) {
-            throw new Error('Data de nascimento inválida');
+        hoje.setHours(23, 59, 59, 999);
+
+        if (isNaN(dataNasc.getTime())) {
+            throw new Error('Formato de data de nascimento inválido');
+        }
+
+        if (dataNasc > hoje) {
+            throw new Error('Data de nascimento não pode ser no futuro');
         }
     }
 
@@ -121,7 +145,7 @@ exports.update = async (id, data, user) => {
 
     const updateData = {};
     if (data.nome !== undefined) updateData.nome = data.nome.trim();
-    if (data.data_nascimento !== undefined) updateData.data_nascimento = data.data_nascimento;
+    if (data_nascimento !== undefined) updateData.data_nascimento = data_nascimento;
     if (data.genero !== undefined) updateData.genero = data.genero;
     if (data.nif !== undefined) updateData.nif = data.nif ? data.nif.trim() : null;
     if (data.telemovel !== undefined) updateData.telemovel = data.telemovel ? data.telemovel.trim() : null;

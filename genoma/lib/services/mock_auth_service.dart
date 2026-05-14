@@ -27,6 +27,14 @@ class MockAuthService {
     await prefs.setString('auth_token', _token);
   }
 
+  Future<void> loginPaciente(String email, String password) async {
+    _token = 'mock-token-paciente-${email.hashCode}';
+    APIService().token = _token;
+    _currentUser = {'email': email, 'perfil_nome': 'Paciente', 'nome': 'Paciente Mock'};
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', _token);
+  }
+
   Future<void> logout() async {
     _token = '';
     _currentUser = null;

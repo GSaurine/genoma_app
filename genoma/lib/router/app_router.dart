@@ -5,6 +5,8 @@ import '../pages/loginPacientePage.dart';
 import '../pages/splashPage.dart';
 import '../pages/admin_home.dart';
 import '../pages/medico_home.dart';
+import '../pages/pacientes_page.dart';
+import '../pages/paciente_portal_page.dart';
 
 class AppRouter {
   static const String splashRoute = '/';
@@ -13,6 +15,8 @@ class AppRouter {
   static const String homeRoute = '/home';
   static const String adminRoute = '/admin';
   static const String medicoRoute = '/medico-home';
+  static const String pacientesRoute = '/pacientes';
+  static const String pacientePortalRoute = '/paciente-portal';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -28,6 +32,10 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AdminHome());
       case medicoRoute:
         return MaterialPageRoute(builder: (_) => const MedicoHome());
+      case pacientesRoute:
+        return MaterialPageRoute(builder: (_) => const PacientesPage());
+      case pacientePortalRoute:
+        return MaterialPageRoute(builder: (_) => const PacientePortalPage());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

@@ -37,6 +37,8 @@ class _HomepageState extends State<Homepage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (AuthFacade().isMedico) {
         Navigator.pushReplacementNamed(context, '/medico-home');
+      } else if (AuthFacade().isPaciente) {
+        Navigator.pushReplacementNamed(context, '/paciente-portal');
       }
     });
   }

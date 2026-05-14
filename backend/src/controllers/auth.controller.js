@@ -29,7 +29,7 @@ exports.loginPaciente = async (req, res) => {
 
 exports.me = async (req, res) => {
     try {
-        const user = await authService.getUserById(req.user.id);
+        const user = await authService.getUserById(req.user.id, req.user.role);
         if (!user) {
             return res.status(404).json({ error: 'Utilizador não encontrado' });
         }

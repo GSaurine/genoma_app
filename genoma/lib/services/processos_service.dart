@@ -10,9 +10,21 @@ class ProcessosService {
     final resp = await api.getRequest('/processos');
     final body = resp.data;
     if (body == null) return [];
-    if (body is Map && body['data'] is Map && body['data']['processos'] is List) {
+    if (body is Map && body['data'] is List) {
        return List<Map<String, dynamic>>.from(
-           (body['data']['processos'] as List).map((e) => Map<String, dynamic>.from(e as Map)));
+           (body['data'] as List).map((e) => Map<String, dynamic>.from(e as Map)));
+    }
+    return [];
+  }
+
+  Future<List<Map<String, dynamic>>> fetchProcessosByPaciente(String pacienteId) async {
+    final api = APIService();
+    final resp = await api.getRequest('/processos/paciente/$pacienteId');
+    final body = resp.data;
+    if (body == null) return [];
+    if (body is Map && body['data'] is List) {
+       return List<Map<String, dynamic>>.from(
+           (body['data'] as List).map((e) => Map<String, dynamic>.from(e as Map)));
     }
     return [];
   }

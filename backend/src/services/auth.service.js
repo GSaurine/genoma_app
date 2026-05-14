@@ -64,6 +64,25 @@ exports.loginPaciente = async ({ email, password }) => {
     return token;
 };
 
-exports.getUserById = async (id) => {
-    return await userRepository.findById(id);
+exports.getUserById = async (id, role) => {
+    // Se sabemos que é paciente pelo token, buscamos direto lá
+    if (role === 'Paciente') {
+        const paciente = await pacientesRepository.findById(id);
+        if (paciente) {
+            return { ...paciente, perfil_nome: 'Paciente' };
+        }
+        return null;
+    }
+
+    // Caso contrário, busca em utilizadores
+    const user = await userRepository.findById(id);
+    if (user) return user;
+
+    // Fallback: se não achou em utilizadores, tenta em pacientes (casos onde role não veio ou é ambíguo)
+    const paciente = await pacientesRepository.findById(id);
+    if (paciente) {
+        return { ...paciente, perfil_nome: 'Paciente' };
+    }
+
+    return null;
 };

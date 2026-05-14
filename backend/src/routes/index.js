@@ -19,6 +19,8 @@ const resultadosGeneticosRoutes = require('./resultados_geneticos.routes');
 const assetsResultadosRoutes = require('./assets_resultados.routes');
 const facturacaoRoutes = require('./facturacao.routes');
 
+router.get('/ping', (req, res) => res.json({ success: true, message: 'pong', version: '1.0.1' }));
+
 router.use('/auth', authRoutes);
 router.use('/perfis', perfisRoutes);
 router.use('/empresas', empresasRoutes);

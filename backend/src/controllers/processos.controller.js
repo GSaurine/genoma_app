@@ -10,6 +10,15 @@ exports.list = async (req, res) => {
     }
 };
 
+exports.listByPaciente = async (req, res) => {
+    try {
+        const result = await processosService.listByPacienteId(req.params.pacienteId);
+        res.json({ data: result });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 exports.getById = async (req, res) => {
     try {
         const processo = await processosService.getById(req.params.id);

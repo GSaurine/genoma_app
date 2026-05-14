@@ -234,10 +234,23 @@ class _MedicoHomeState extends State<MedicoHome> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Ações Rápidas',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 70,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pushNamed(context, '/pacientes'),
+                      icon: const Icon(Icons.people, size: 28),
+                      label: const Text(
+                        'VER LISTA DE PACIENTES',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 2,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
