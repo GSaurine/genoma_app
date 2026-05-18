@@ -3,18 +3,28 @@ const logService = require('./log.service');
 const bcrypt = require('bcrypt');
 
 exports.listAll = async (user) => {
-    return await pacientesRepository.findAll();
+    const utilizadorId = user.role === 'medico' ? user.id : null;
+    return await pacientesRepository.findAll(null, null, utilizadorId);
 };
 
 exports.getById = async (id, user) => {
-    return await pacientesRepository.findById(id);
+    const paciente = await pacientesRepository.findById(id);
+    if (!paciente) return null;
+
+    // Segurança: se for médico, só pode ver se foi ele quem criou
+    if (user.role === 'medico' && paciente.created_by !== user.id) {
+        throw new Error('Não tem permissão para aceder a este paciente');
+    }
+
+    return paciente;
 };
 
 exports.search = async (nome, user) => {
     if (!nome || nome.trim() === '') {
         throw new Error('Nome é obrigatório para busca');
     }
-    return await pacientesRepository.searchByNome(nome);
+    const utilizadorId = user.role === 'medico' ? user.id : null;
+    return await pacientesRepository.searchByNome(nome, null, null, utilizadorId);
 };
 
 exports.create = async (data, user) => {
@@ -78,7 +88,8 @@ exports.create = async (data, user) => {
         password_hash,
         morada: data.morada ? data.morada.trim() : null,
         altura: data.altura || null,
-        peso: data.peso || null
+        peso: data.peso || null,
+        created_by: user ? user.id : null
     });
 
     if (user) {
@@ -99,6 +110,11 @@ exports.update = async (id, data, user) => {
     const paciente = await pacientesRepository.findById(id);
     if (!paciente) {
         throw new Error('Paciente não encontrado');
+    }
+
+    // Segurança: se for médico, só pode atualizar se foi ele quem criou
+    if (user.role === 'medico' && paciente.created_by !== user.id) {
+        throw new Error('Não tem permissão para atualizar este paciente');
     }
 
     // Validações
@@ -178,6 +194,11 @@ exports.delete = async (id, user) => {
     const paciente = await pacientesRepository.findById(id);
     if (!paciente) {
         throw new Error('Paciente não encontrado');
+    }
+
+    // Segurança: se for médico, só pode apagar se foi ele quem criou
+    if (user.role === 'medico' && paciente.created_by !== user.id) {
+        throw new Error('Não tem permissão para eliminar este paciente');
     }
 
     // Verificar se há pedidos associados

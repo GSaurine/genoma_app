@@ -7,7 +7,7 @@ const emailValidator = body('email')
   .withMessage('Email inválido');
 
 const optionalEmailValidator = body('email')
-  .optional()
+  .optional({ checkFalsy: true })
   .isEmail()
   .normalizeEmail()
   .withMessage('Email inválido');
@@ -18,7 +18,7 @@ const telefoneValidator = body('telefone')
   .withMessage('Número de telefone inválido');
 
 const optionalTelefoneValidator = body('telefone')
-  .optional()
+  .optional({ checkFalsy: true })
   .isMobilePhone('pt-PT')
   .withMessage('Número de telefone inválido');
 

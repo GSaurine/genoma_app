@@ -1,23 +1,39 @@
 const pool = require('../config/database');
 const { getPaginationParams } = require('../utils/pagination');
 
-exports.findAll = async (page, limit) => {
+exports.findAll = async (page, limit, utilizadorId = null) => {
     const connection = await pool.getConnection();
     try {
         const { offset, limit: l } = getPaginationParams(page, limit);
-        const [rows] = await connection.execute(
-            `SELECT * FROM pacientes WHERE ativo = TRUE ORDER BY created_at DESC LIMIT ${l} OFFSET ${offset}`
-        );
+        let query = 'SELECT * FROM pacientes WHERE ativo = TRUE';
+        const params = [];
+
+        if (utilizadorId) {
+            query += ' AND created_by = ?';
+            params.push(utilizadorId);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT ${l} OFFSET ${offset}`;
+        
+        const [rows] = await connection.execute(query, params);
         return rows;
     } finally {
         connection.release();
     }
 };
 
-exports.countAll = async () => {
+exports.countAll = async (utilizadorId = null) => {
     const connection = await pool.getConnection();
     try {
-        const [rows] = await connection.execute('SELECT COUNT(*) as total FROM pacientes WHERE ativo = TRUE');
+        let query = 'SELECT COUNT(*) as total FROM pacientes WHERE ativo = TRUE';
+        const params = [];
+
+        if (utilizadorId) {
+            query += ' AND created_by = ?';
+            params.push(utilizadorId);
+        }
+
+        const [rows] = await connection.execute(query, params);
         return rows[0].total;
     } finally {
         connection.release();
@@ -54,14 +70,21 @@ exports.findByEmail = async (email) => {
     }
 };
 
-exports.searchByNome = async (nome, page, limit) => {
+exports.searchByNome = async (nome, page, limit, utilizadorId = null) => {
     const connection = await pool.getConnection();
     try {
         const { offset, limit: l } = getPaginationParams(page, limit);
-        const [rows] = await connection.execute(
-            `SELECT * FROM pacientes WHERE nome LIKE ? AND ativo = TRUE ORDER BY nome LIMIT ${l} OFFSET ${offset}`,
-            [`%${nome}%`]
-        );
+        let query = 'SELECT * FROM pacientes WHERE nome LIKE ? AND ativo = TRUE';
+        const params = [`%${nome}%`];
+
+        if (utilizadorId) {
+            query += ' AND created_by = ?';
+            params.push(utilizadorId);
+        }
+
+        query += ` ORDER BY nome LIMIT ${l} OFFSET ${offset}`;
+        
+        const [rows] = await connection.execute(query, params);
         return rows;
     } finally {
         connection.release();
@@ -74,8 +97,8 @@ exports.create = async (data) => {
         const { v4: uuidv4 } = require('uuid');
         const id = uuidv4();
         await connection.execute(
-            'INSERT INTO pacientes (id, nome, data_nascimento, genero, nif, telemovel, email, password_hash, morada, altura, peso) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, data.nome, data.data_nascimento, data.genero || null, data.nif || null, data.telemovel || null, data.email || null, data.password_hash || null, data.morada || null, data.altura || null, data.peso || null]
+            'INSERT INTO pacientes (id, nome, data_nascimento, genero, nif, telemovel, email, password_hash, morada, altura, peso, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, data.nome, data.data_nascimento, data.genero || null, data.nif || null, data.telemovel || null, data.email || null, data.password_hash || null, data.morada || null, data.altura || null, data.peso || null, data.created_by || null]
         );
         return {
             id,
@@ -88,6 +111,7 @@ exports.create = async (data) => {
             morada: data.morada || null,
             altura: data.altura || null,
             peso: data.peso || null,
+            created_by: data.created_by || null,
             created_at: new Date()
         };
     } finally {

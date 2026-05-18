@@ -12,6 +12,8 @@ import 'package:genoma/services/itens_pesquisa_service.dart';
 import 'package:genoma/services/resultados_service.dart';
 import 'package:genoma/services/resultados_geneticos_service.dart';
 import 'package:genoma/core/ui/notification_service.dart';
+import 'package:genoma/services/auth_service.dart';
+import 'package:intl/intl.dart';
 
 Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pacienteService) async {
   final nomeController = TextEditingController();
@@ -23,6 +25,7 @@ Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pac
   final pesoController = TextEditingController();
 
   DateTime? selectedDate;
+  final isAdmin = AuthService().isAdmin;
 
   final result = await showDialog<bool>(
     context: context,
@@ -31,15 +34,33 @@ Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pac
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(controller: nomeController, decoration: const InputDecoration(labelText: 'Nome')),
-            const SizedBox(height: 8),
+            TextField(
+              controller: nomeController, 
+              decoration: const InputDecoration(
+                labelText: 'Nome Completo *',
+                prefixIcon: Icon(Icons.person_outline),
+              )
+            ),
+            const SizedBox(height: 16),
+            const Text('Data de Nascimento *', style: TextStyle(fontSize: 12, color: Colors.grey)),
             Row(
               children: [
+                const Icon(Icons.cake_outlined, color: Colors.grey),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(selectedDate == null ? 'Data de nascimento não selecionada' : selectedDate!.toIso8601String().split('T')[0]),
+                  child: Text(
+                    selectedDate == null 
+                      ? 'Não selecionada' 
+                      : DateFormat('dd/MM/yyyy').format(selectedDate!),
+                    style: TextStyle(
+                      color: selectedDate == null ? Colors.red.shade300 : Colors.black87,
+                      fontWeight: selectedDate == null ? FontWeight.normal : FontWeight.bold,
+                    ),
+                  ),
                 ),
-                TextButton(
+                TextButton.icon(
                   onPressed: () async {
                     final now = DateTime.now();
                     final picked = await showDatePicker(
@@ -50,31 +71,78 @@ Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pac
                     );
                     if (picked != null) setState(() => selectedDate = picked);
                   },
-                  child: const Text('Selecionar Data'),
+                  icon: const Icon(Icons.calendar_today, size: 18),
+                  label: const Text('Selecionar'),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-            TextField(controller: nifController, decoration: const InputDecoration(labelText: 'NIF')),
-            TextField(controller: telController, decoration: const InputDecoration(labelText: 'Telemóvel')),
-            TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Senha de Acesso'), obscureText: true),
             TextField(
-              controller: alturaController, 
-              decoration: const InputDecoration(labelText: 'Altura (m)', hintText: 'Ex: 1.75'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              controller: telController, 
+              decoration: const InputDecoration(
+                labelText: 'Telemóvel',
+                prefixIcon: Icon(Icons.phone_android),
+              ),
+              keyboardType: TextInputType.phone,
             ),
-            TextField(
-              controller: pesoController, 
-              decoration: const InputDecoration(labelText: 'Peso (kg)', hintText: 'Ex: 70.5'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
+            
+            if (isAdmin) ...[
+              const SizedBox(height: 16),
+              Theme(
+                data: Theme.of(ctx2).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  title: const Text(
+                    'Informações Adicionais (Admin)', 
+                    style: TextStyle(fontSize: 13, color: Colors.blue, fontWeight: FontWeight.bold)
+                  ),
+                  children: [
+                    TextField(
+                      controller: emailController, 
+                      decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined))
+                    ),
+                    TextField(
+                      controller: nifController, 
+                      decoration: const InputDecoration(labelText: 'NIF', prefixIcon: Icon(Icons.badge_outlined))
+                    ),
+                    TextField(
+                      controller: passwordController, 
+                      decoration: const InputDecoration(labelText: 'Senha de Acesso', prefixIcon: Icon(Icons.lock_outline)), 
+                      obscureText: true
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: alturaController, 
+                            decoration: const InputDecoration(labelText: 'Altura (m)', hintText: '1.75'),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: pesoController, 
+                            decoration: const InputDecoration(labelText: 'Peso (kg)', hintText: '70.5'),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.of(ctx2).pop(false), child: const Text('Cancelar')),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
           onPressed: () async {
             if (nomeController.text.trim().isEmpty) {
               NotificationService().showError('Por favor, insira o nome do paciente');
