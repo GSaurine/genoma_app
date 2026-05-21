@@ -2,28 +2,65 @@ const pool = require('../config/database');
 const { getPaginationParams } = require('../utils/pagination');
 const { v4: uuidv4 } = require('uuid');
 
-exports.findAll = async (page, limit) => {
+exports.findAll = async (page, limit, filters = {}) => {
     const connection = await pool.getConnection();
     try {
         const { offset, limit: l } = getPaginationParams(page, limit);
-        const [rows] = await connection.execute(
-            `SELECT k.*, l.numero_lote, e.nome as empresa_nome, p.nome as posto_nome 
-             FROM kits k
-             LEFT JOIN lotes l ON k.lote_id = l.id
-             LEFT JOIN empresas e ON k.empresa_id = e.id
-             LEFT JOIN postos p ON k.posto_id = p.id
-             ORDER BY k.data_validade DESC LIMIT ${l} OFFSET ${offset}`
-        );
+        let query = `
+            SELECT k.*, l.numero_lote, e.nome as empresa_nome, p.nome as posto_nome 
+            FROM kits k
+            LEFT JOIN lotes l ON k.lote_id = l.id
+            LEFT JOIN empresas e ON k.empresa_id = e.id
+            LEFT JOIN postos p ON k.posto_id = p.id
+        `;
+        const values = [];
+        const whereClauses = [];
+
+        if (filters.posto_id) {
+            whereClauses.push('k.posto_id = ?');
+            values.push(filters.posto_id);
+        }
+        
+        if (filters.status) {
+            whereClauses.push('k.status = ?');
+            values.push(filters.status);
+        }
+
+        if (whereClauses.length > 0) {
+            query += ` WHERE ${whereClauses.join(' AND ')}`;
+        }
+
+        query += ` ORDER BY k.data_validade DESC LIMIT ${l} OFFSET ${offset}`;
+        
+        const [rows] = await connection.execute(query, values);
         return rows;
     } finally {
         connection.release();
     }
 };
 
-exports.countAll = async () => {
+exports.countAll = async (filters = {}) => {
     const connection = await pool.getConnection();
     try {
-        const [rows] = await connection.execute('SELECT COUNT(*) as total FROM kits');
+        let query = 'SELECT COUNT(*) as total FROM kits k';
+        const values = [];
+        const whereClauses = [];
+
+        if (filters.posto_id) {
+            whereClauses.push('k.posto_id = ?');
+            values.push(filters.posto_id);
+        }
+        
+        if (filters.status) {
+            whereClauses.push('k.status = ?');
+            values.push(filters.status);
+        }
+
+        if (whereClauses.length > 0) {
+            query += ` WHERE ${whereClauses.join(' AND ')}`;
+        }
+
+        const [rows] = await connection.execute(query, values);
         return rows[0].total;
     } finally {
         connection.release();

@@ -15,9 +15,14 @@ class KitsService {
     return null;
   }
 
-  Future<List<Map<String, dynamic>>> fetchKits() async {
+  Future<List<Map<String, dynamic>>> fetchKits({String? postoId, String? status}) async {
     final api = APIService();
-    final resp = await api.getRequest('/kits');
+
+    final Map<String, dynamic> queryParameters = {};
+    if (postoId != null) queryParameters['posto_id'] = postoId;
+    if (status != null) queryParameters['status'] = status;
+
+    final resp = await api.getRequest('/kits', queryParameters: queryParameters);
     final body = resp.data;
     if (body == null) return [];
     if (body is Map && body['data'] is List) {

@@ -2,8 +2,8 @@ const kitsService = require('../services/kits.service');
 
 exports.list = async (req, res) => {
     try {
-        const { page, limit } = req.query;
-        const result = await kitsService.listAll(page, limit);
+        const { page, limit, posto_id, status } = req.query;
+        const result = await kitsService.listAll(page, limit, { posto_id, status });
         res.json({ data: result.kits, count: result.total });
     } catch (err) {
         res.status(500).json({ error: err.message });

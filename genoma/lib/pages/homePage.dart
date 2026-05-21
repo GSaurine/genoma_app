@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genoma/services/paciente_service.dart';
 import 'package:genoma/services/auth_facade.dart';
-import 'package:genoma/services/processos_service.dart';
-import 'package:genoma/services/medicos_service.dart';
-import 'package:genoma/services/kits_service.dart';
-import 'package:genoma/services/postos_service.dart';
 import 'package:genoma/widgets/create_dialogs.dart';
 import 'package:genoma/core/ui/notification_service.dart';
 
@@ -17,10 +13,6 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   final _service = PacienteService();
-  final _processosService = ProcessosService();
-  final _medicosService = MedicosService();
-  final _kitsService = KitsService();
-  final _postosService = PostosService();
 
   bool _loading = true;
   String? _error;
@@ -89,20 +81,6 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
-  Future<void> _handleCreateProcesso() async {
-    final result = await showCreateProcessoDialog(
-      context,
-      _processosService,
-      _service,
-      _medicosService,
-      _kitsService,
-      _postosService,
-    );
-    if (result == true) {
-      NotificationService().showSuccess('Novo exame iniciado com sucesso');
-    }
-  }
-
   void _showCreateMenu() {
     showModalBottomSheet(
       context: context,
@@ -121,14 +99,6 @@ class _HomepageState extends State<Homepage> {
                 onTap: () {
                   Navigator.pop(context);
                   _handleCreatePaciente();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.science, color: Colors.green),
-                title: const Text('Novo Exame'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleCreateProcesso();
                 },
               ),
               const SizedBox(height: 12),

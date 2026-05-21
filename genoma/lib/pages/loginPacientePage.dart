@@ -83,10 +83,6 @@ class _LoginPacientePageState extends State<LoginPacientePage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: _loading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[700],
-                    foregroundColor: Colors.white,
-                  ),
                   child: _loading
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Entrar como Paciente', style: TextStyle(fontSize: 16)),
@@ -95,6 +91,7 @@ class _LoginPacientePageState extends State<LoginPacientePage> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(foregroundColor: Colors.black54),
                 child: const Text('Voltar para Login Geral'),
               ),
             ],

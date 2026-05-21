@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genoma/services/auth_facade.dart';
 import 'package:genoma/services/paciente_service.dart';
-import 'package:genoma/services/processos_service.dart';
-import 'package:genoma/services/medicos_service.dart';
-import 'package:genoma/services/kits_service.dart';
-import 'package:genoma/services/postos_service.dart';
 import 'package:genoma/widgets/create_dialogs.dart';
 import 'package:genoma/core/ui/notification_service.dart';
 
@@ -17,10 +13,6 @@ class MedicoHome extends StatefulWidget {
 
 class _MedicoHomeState extends State<MedicoHome> {
   final _pacienteService = PacienteService();
-  final _processosService = ProcessosService();
-  final _medicosService = MedicosService();
-  final _kitsService = KitsService();
-  final _postosService = PostosService();
 
   bool _loading = true;
   List<Map<String, dynamic>> _pacientes = [];
@@ -49,20 +41,6 @@ class _MedicoHomeState extends State<MedicoHome> {
     if (result == true) {
       NotificationService().showSuccess('Paciente criado com sucesso');
       _loadInitialData();
-    }
-  }
-
-  Future<void> _handleCreateProcesso() async {
-    final result = await showCreateProcessoDialog(
-      context,
-      _processosService,
-      _pacienteService,
-      _medicosService,
-      _kitsService,
-      _postosService,
-    );
-    if (result == true) {
-      NotificationService().showSuccess('Novo exame iniciado com sucesso');
     }
   }
 
@@ -105,7 +83,11 @@ class _MedicoHomeState extends State<MedicoHome> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade50, foregroundColor: Colors.red),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50, 
+                    foregroundColor: Colors.red,
+                    elevation: 0,
+                  ),
                   onPressed: () async {
                     Navigator.pop(context);
                     await AuthFacade().logout();
@@ -135,19 +117,11 @@ class _MedicoHomeState extends State<MedicoHome> {
               const Text('Criar Novo', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
               ListTile(
-                leading: const Icon(Icons.person_add, color: Colors.blue),
+                leading: Icon(Icons.person_add, color: Theme.of(context).primaryColor),
                 title: const Text('Novo Paciente'),
                 onTap: () {
                   Navigator.pop(context);
                   _handleCreatePaciente();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.science, color: Colors.green),
-                title: const Text('Novo Exame'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleCreateProcesso();
                 },
               ),
               const SizedBox(height: 12),
@@ -160,6 +134,7 @@ class _MedicoHomeState extends State<MedicoHome> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Portal do Médico'),
@@ -179,8 +154,7 @@ class _MedicoHomeState extends State<MedicoHome> {
                 padding: const EdgeInsets.all(24),
                 children: [
                   Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 2,
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
                       child: Column(
@@ -190,8 +164,8 @@ class _MedicoHomeState extends State<MedicoHome> {
                             children: [
                               CircleAvatar(
                                 radius: 30,
-                                backgroundColor: Colors.blue.shade100,
-                                child: Icon(Icons.person, size: 40, color: Colors.blue.shade800),
+                                backgroundColor: theme.colorScheme.primaryContainer,
+                                child: Icon(Icons.person, size: 40, color: theme.colorScheme.primary),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -217,7 +191,7 @@ class _MedicoHomeState extends State<MedicoHome> {
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.assignment_ind, size: 18, color: Colors.blue),
+                                  Icon(Icons.assignment_ind, size: 18, color: theme.primaryColor),
                                   const SizedBox(width: 8),
                                   Text('Nº Ordem: ${_userData?['num_ordem']}'),
                                 ],
@@ -225,7 +199,7 @@ class _MedicoHomeState extends State<MedicoHome> {
                             ),
                           Row(
                             children: [
-                              const Icon(Icons.badge, size: 18, color: Colors.blue),
+                              Icon(Icons.badge, size: 18, color: theme.primaryColor),
                               const SizedBox(width: 8),
                               Text('Perfil: ${_userData?['perfil_nome'] ?? 'Médico'}'),
                             ],
@@ -234,6 +208,7 @@ class _MedicoHomeState extends State<MedicoHome> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     height: 70,
@@ -245,10 +220,8 @@ class _MedicoHomeState extends State<MedicoHome> {
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange.shade700,
+                        backgroundColor: Colors.green.shade900,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 2,
                       ),
                     ),
                   ),
@@ -264,38 +237,19 @@ class _MedicoHomeState extends State<MedicoHome> {
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Colors.green.shade600,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 70,
-                    child: ElevatedButton.icon(
-                      onPressed: _handleCreateProcesso,
-                      icon: const Icon(Icons.science, size: 28),
-                      label: const Text(
-                        'INICIAR NOVO EXAME / PROCESSO',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 2,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton.small(
+      floatingActionButton: FloatingActionButton(
         onPressed: _showCreateMenu,
         tooltip: 'Adicionar',
+        backgroundColor: theme.primaryColor,
+        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
     );

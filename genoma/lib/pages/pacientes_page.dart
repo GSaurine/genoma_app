@@ -99,7 +99,7 @@ class _PatientCard extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue.shade700, Colors.blue.shade500],
+                colors: [Colors.green.shade800, Colors.green.shade600],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -159,7 +159,7 @@ class _PatientCard extends StatelessWidget {
               color: Colors.grey.shade50,
               child: Row(
                 children: [
-                  const Icon(Icons.assignment_outlined, size: 18, color: Colors.blue),
+                  Icon(Icons.assignment_outlined, size: 18, color: Colors.green.shade700),
                   const SizedBox(width: 8),
                   const Text(
                     'PROCESSOS / EXAMES ATIVOS',
@@ -169,12 +169,12 @@ class _PatientCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
+                      color: Colors.green.shade100,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '${processos.length}',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue.shade900),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green.shade900),
                     ),
                   ),
                 ],
@@ -250,7 +250,7 @@ class _PatientCard extends StatelessWidget {
   Widget _infoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.blue.shade300),
+        Icon(icon, size: 18, color: Colors.green.shade600),
         const SizedBox(width: 12),
         Expanded(
           child: Text(

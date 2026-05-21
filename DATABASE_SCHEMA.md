@@ -83,6 +83,7 @@ Este ficheiro lista todas as tabelas e os seus atributos conforme as migrações
 | peso | DECIMAL(5,2) | |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
 | ativo | BOOLEAN | DEFAULT TRUE |
+| created_by | CHAR(36) | FK (utilizadores.id) |
 
 ### 9. pedidos_exames
 | Atributo | Tipo | Notas |
@@ -191,7 +192,7 @@ Este ficheiro lista todas as tabelas e os seus atributos conforme as migrações
 | processo_id | CHAR(36) | FK (processos.id) |
 | semanas_gravidez | INT | |
 | dias_gravidez | INT | |
-| tipo_gravidez | ENUM | 'singular', 'gemelar' |
+| tipo_gravidez | ENUM | 'singular', 'gemelar', DEFAULT 'singular' |
 | quer_saber_sexo | BOOLEAN | DEFAULT FALSE |
 | motivo_prescricao | TEXT | |
 | data_registo | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
@@ -219,6 +220,6 @@ Este ficheiro lista todas as tabelas e os seus atributos conforme as migrações
 | referencia_multibanco | VARCHAR(20) | |
 | comissao | BOOLEAN | DEFAULT FALSE |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
-| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP |
 
 

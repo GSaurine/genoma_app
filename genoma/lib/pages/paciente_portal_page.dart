@@ -235,10 +235,10 @@ class _PacientePortalPageState extends State<PacientePortalPage> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'concluído': return Colors.green;
-      case 'em processamento': return Colors.blue;
-      case 'pendente': return Colors.orange;
-      default: return Colors.grey;
+      case 'concluído': return Colors.green.shade700;
+      case 'em processamento': return Colors.green.shade400;
+      case 'pendente': return Colors.green.shade200;
+      default: return Colors.grey.shade600;
     }
   }
 }

@@ -34,7 +34,7 @@ class AdminCards extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildCard('Processos (Exames)', 'Criar novo processo de exame', onCreateProcesso, color: Colors.blue.withOpacity(0.05)),
+        _buildCard('Processos (Exames)', 'Criar novo processo de exame', onCreateProcesso, color: Colors.green.withOpacity(0.05)),
         const SizedBox(height: 12),
         _buildCard('Pacientes', 'Criar / gerenciar pacientes', onCreatePaciente),
         const SizedBox(height: 12),

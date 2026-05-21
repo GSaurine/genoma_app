@@ -2,9 +2,9 @@ const kitsRepository = require('../repositories/kits.repository');
 const lotesRepository = require('../repositories/lotes.repository');
 const logService = require('./log.service');
 
-exports.listAll = async (page, limit) => {
-    const kits = await kitsRepository.findAll(page, limit);
-    const total = await kitsRepository.countAll();
+exports.listAll = async (page, limit, filters = {}) => {
+    const kits = await kitsRepository.findAll(page, limit, filters);
+    const total = await kitsRepository.countAll(filters);
     return { kits, total };
 };
 

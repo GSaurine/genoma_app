@@ -92,9 +92,9 @@ Future<bool?> showCreatePacienteDialog(BuildContext context, PacienteService pac
                 data: Theme.of(ctx2).copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
                   tilePadding: EdgeInsets.zero,
-                  title: const Text(
+                  title: Text(
                     'Informações Adicionais (Admin)', 
-                    style: TextStyle(fontSize: 13, color: Colors.blue, fontWeight: FontWeight.bold)
+                    style: TextStyle(fontSize: 13, color: Theme.of(ctx2).primaryColor, fontWeight: FontWeight.bold)
                   ),
                   children: [
                     TextField(
@@ -382,11 +382,13 @@ Future<bool?> showCreateProcessoDialog(
   List<Map<String, dynamic>> medicos = [];
   List<Map<String, dynamic>> kits = [];
   List<Map<String, dynamic>> postos = [];
+  bool isLoadingKits = false;
   
   try {
     pacientes = await pacienteService.fetchPacientes();
     medicos = await medicosService.fetchMedicos();
-    kits = await kitsService.fetchKits();
+    // Não carregamos kits inicialmente, pois dependem do posto
+    // kits = await kitsService.fetchKits(); 
     postos = await postosService.fetchPostos();
   } catch (_) {}
 
@@ -413,13 +415,6 @@ Future<bool?> showCreateProcessoDialog(
               value: selectedMedicoId,
               onChanged: (v) => setState(() => selectedMedicoId = v),
             ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Kit (Tipo de Teste)'),
-              items: kits.map((k) => DropdownMenuItem(value: k['id']?.toString(), child: Text(k['codigo_barras'] ?? '-'))).toList(),
-              value: selectedKitId,
-              onChanged: (v) => setState(() => selectedKitId = v),
-            ),
             
             const Divider(height: 32),
             const Text('Local e Data de Colheita', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -427,8 +422,43 @@ Future<bool?> showCreateProcessoDialog(
               decoration: const InputDecoration(labelText: 'Posto de Colheita'),
               items: postos.map((p) => DropdownMenuItem(value: p['id']?.toString(), child: Text(p['nome'] ?? '-'))).toList(),
               value: selectedPostoId,
-              onChanged: (v) => setState(() => selectedPostoId = v),
+              onChanged: (v) async {
+                setState(() {
+                  selectedPostoId = v;
+                  selectedKitId = null;
+                  kits = [];
+                  isLoadingKits = true;
+                });
+                if (v != null) {
+                  try {
+                    final filteredKits = await kitsService.fetchKits(postoId: v, status: 'No Posto');
+                    setState(() {
+                      kits = filteredKits;
+                      isLoadingKits = false;
+                    });
+                  } catch (e) {
+                    setState(() => isLoadingKits = false);
+                    NotificationService().showError('Erro ao carregar kits do posto');
+                  }
+                } else {
+                  setState(() => isLoadingKits = false);
+                }
+              },
             ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: isLoadingKits ? 'A carregar kits...' : 'Kit (Código de Barras)',
+                hintText: selectedPostoId == null ? 'Selecione primeiro um posto' : 'Selecione um kit',
+              ),
+              items: kits.map((k) => DropdownMenuItem(
+                value: k['id']?.toString(), 
+                child: Text('${k['codigo_barras']} (${k['numero_kit'] ?? 'S/N'})')
+              )).toList(),
+              value: selectedKitId,
+              onChanged: selectedPostoId == null || isLoadingKits ? null : (v) => setState(() => selectedKitId = v),
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
