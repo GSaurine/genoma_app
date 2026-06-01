@@ -1,23 +1,36 @@
 const pacientesRepository = require('../repositories/pacientes.repository');
 const logService = require('./log.service');
+const bcrypt = require('bcrypt');
 
 exports.listAll = async (user) => {
-    return await pacientesRepository.findAll();
+    const utilizadorId = user.role === 'medico' ? user.id : null;
+    return await pacientesRepository.findAll(null, null, utilizadorId);
 };
 
 exports.getById = async (id, user) => {
-    return await pacientesRepository.findById(id);
+    const paciente = await pacientesRepository.findById(id);
+    if (!paciente) return null;
+
+    // Segurança: se for médico, só pode ver se foi ele quem criou
+    if (user.role === 'medico' && paciente.created_by !== user.id) {
+        throw new Error('Não tem permissão para aceder a este paciente');
+    }
+
+    return paciente;
 };
 
 exports.search = async (nome, user) => {
     if (!nome || nome.trim() === '') {
         throw new Error('Nome é obrigatório para busca');
     }
-    return await pacientesRepository.searchByNome(nome);
+    const utilizadorId = user.role === 'medico' ? user.id : null;
+    return await pacientesRepository.searchByNome(nome, null, null, utilizadorId);
 };
 
 exports.create = async (data, user) => {
     // Validações
+    console.log('DEBUG: Criando paciente com dados:', { ...data, password: data.password ? '******' : null });
+    
     if (!data.nome || data.nome.trim() === '') {
         throw new Error('Nome do paciente é obrigatório');
     }
@@ -26,11 +39,22 @@ exports.create = async (data, user) => {
         throw new Error('Data de nascimento é obrigatória');
     }
 
-    // Validar data de nascimento
-    const dataNasc = new Date(data.data_nascimento);
+    // Normalizar e validar data de nascimento
+    let data_nascimento = data.data_nascimento;
+    if (typeof data_nascimento === 'string' && data_nascimento.includes('T')) {
+        data_nascimento = data_nascimento.split('T')[0];
+    }
+
+    const dataNasc = new Date(data_nascimento);
     const hoje = new Date();
-    if (dataNasc >= hoje) {
-        throw new Error('Data de nascimento inválida');
+    hoje.setHours(23, 59, 59, 999); // Permitir datas de hoje
+
+    if (isNaN(dataNasc.getTime())) {
+        throw new Error('Formato de data de nascimento inválido');
+    }
+
+    if (dataNasc > hoje) {
+        throw new Error('Data de nascimento não pode ser no futuro');
     }
 
     // Validar NIF se fornecido
@@ -49,14 +73,23 @@ exports.create = async (data, user) => {
         }
     }
 
+    let password_hash = null;
+    if (data.password) {
+        password_hash = await bcrypt.hash(data.password, 10);
+    }
+
     const paciente = await pacientesRepository.create({
         nome: data.nome.trim(),
-        data_nascimento: data.data_nascimento,
+        data_nascimento, // Usar data normalizada YYYY-MM-DD
         genero: data.genero || null,
         nif: data.nif ? data.nif.trim() : null,
         telemovel: data.telemovel ? data.telemovel.trim() : null,
         email: data.email ? data.email.trim() : null,
-        morada: data.morada ? data.morada.trim() : null
+        password_hash,
+        morada: data.morada ? data.morada.trim() : null,
+        altura: data.altura || null,
+        peso: data.peso || null,
+        created_by: user ? user.id : null
     });
 
     if (user) {
@@ -79,6 +112,11 @@ exports.update = async (id, data, user) => {
         throw new Error('Paciente não encontrado');
     }
 
+    // Segurança: se for médico, só pode atualizar se foi ele quem criou
+    if (user.role === 'medico' && paciente.created_by !== user.id) {
+        throw new Error('Não tem permissão para atualizar este paciente');
+    }
+
     // Validações
     if (data.nome !== undefined) {
         if (!data.nome || data.nome.trim() === '') {
@@ -86,11 +124,22 @@ exports.update = async (id, data, user) => {
         }
     }
 
+    let data_nascimento = data.data_nascimento;
     if (data.data_nascimento !== undefined) {
-        const dataNasc = new Date(data.data_nascimento);
+        if (typeof data_nascimento === 'string' && data_nascimento.includes('T')) {
+            data_nascimento = data_nascimento.split('T')[0];
+        }
+
+        const dataNasc = new Date(data_nascimento);
         const hoje = new Date();
-        if (dataNasc >= hoje) {
-            throw new Error('Data de nascimento inválida');
+        hoje.setHours(23, 59, 59, 999);
+
+        if (isNaN(dataNasc.getTime())) {
+            throw new Error('Formato de data de nascimento inválido');
+        }
+
+        if (dataNasc > hoje) {
+            throw new Error('Data de nascimento não pode ser no futuro');
         }
     }
 
@@ -112,12 +161,18 @@ exports.update = async (id, data, user) => {
 
     const updateData = {};
     if (data.nome !== undefined) updateData.nome = data.nome.trim();
-    if (data.data_nascimento !== undefined) updateData.data_nascimento = data.data_nascimento;
+    if (data_nascimento !== undefined) updateData.data_nascimento = data_nascimento;
     if (data.genero !== undefined) updateData.genero = data.genero;
     if (data.nif !== undefined) updateData.nif = data.nif ? data.nif.trim() : null;
     if (data.telemovel !== undefined) updateData.telemovel = data.telemovel ? data.telemovel.trim() : null;
     if (data.email !== undefined) updateData.email = data.email ? data.email.trim() : null;
     if (data.morada !== undefined) updateData.morada = data.morada ? data.morada.trim() : null;
+    if (data.altura !== undefined) updateData.altura = data.altura;
+    if (data.peso !== undefined) updateData.peso = data.peso;
+
+    if (data.password) {
+        updateData.password_hash = await bcrypt.hash(data.password, 10);
+    }
 
     await pacientesRepository.update(id, updateData);
 
@@ -139,6 +194,11 @@ exports.delete = async (id, user) => {
     const paciente = await pacientesRepository.findById(id);
     if (!paciente) {
         throw new Error('Paciente não encontrado');
+    }
+
+    // Segurança: se for médico, só pode apagar se foi ele quem criou
+    if (user.role === 'medico' && paciente.created_by !== user.id) {
+        throw new Error('Não tem permissão para eliminar este paciente');
     }
 
     // Verificar se há pedidos associados

@@ -1,12 +1,19 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/utilizadores.repository');
+const pacientesRepository = require('../repositories/pacientes.repository');
 
 exports.register = async (data) => {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
+    // Normaliza campos do Flutter para o backend
+    const nome = data.nome || data.name;
+    const perfil_id = data.perfil_id; 
+
     return await userRepository.create({
-        ...data,
+        nome,
+        email: data.email,
+        perfil_id,
         password_hash: hashedPassword
     });
 };
@@ -16,6 +23,8 @@ exports.login = async ({ email, password }) => {
 
     if (!user) throw new Error('Utilizador não encontrado');
 
+    console.log('DEBUG Login:', { email, passwordLength: password?.length, hashLength: user.password_hash?.length, hashType: typeof user.password_hash });
+
     const validPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!validPassword) throw new Error('Password inválida');
@@ -23,11 +32,57 @@ exports.login = async ({ email, password }) => {
     const token = jwt.sign(
         {
             id: user.id,
-            role: user.perfil_id
+            role: user.perfil_nome || 'user'
         },
         process.env.JWT_SECRET,
         { expiresIn: '8h' }
     );
 
     return token;
+};
+
+exports.loginPaciente = async ({ email, password }) => {
+    const paciente = await pacientesRepository.findByEmail(email);
+
+    if (!paciente) throw new Error('Paciente não encontrado');
+
+    if (!paciente.password_hash) throw new Error('Paciente não possui senha configurada. Contacte o administrador.');
+
+    const validPassword = await bcrypt.compare(password, paciente.password_hash);
+
+    if (!validPassword) throw new Error('Password inválida');
+
+    const token = jwt.sign(
+        {
+            id: paciente.id,
+            role: 'Paciente'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '8h' }
+    );
+
+    return token;
+};
+
+exports.getUserById = async (id, role) => {
+    // Se sabemos que é paciente pelo token, buscamos direto lá
+    if (role === 'Paciente') {
+        const paciente = await pacientesRepository.findById(id);
+        if (paciente) {
+            return { ...paciente, perfil_nome: 'Paciente' };
+        }
+        return null;
+    }
+
+    // Caso contrário, busca em utilizadores
+    const user = await userRepository.findById(id);
+    if (user) return user;
+
+    // Fallback: se não achou em utilizadores, tenta em pacientes (casos onde role não veio ou é ambíguo)
+    const paciente = await pacientesRepository.findById(id);
+    if (paciente) {
+        return { ...paciente, perfil_nome: 'Paciente' };
+    }
+
+    return null;
 };

@@ -20,10 +20,22 @@ async function runMigrations() {
 
     // Primeiro, corrigir autenticação do utilizador
     try {
-      await connection.execute(
-        `ALTER USER '${process.env.DB_USER}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${process.env.DB_PASSWORD}'`
-      );
-      console.log('✓ Autenticação do utilizador corrigida');
+      try {
+        await connection.execute(
+          `ALTER USER '${process.env.DB_USER}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${process.env.DB_PASSWORD}'`
+        );
+        console.log('✓ Autenticação do utilizador corrigida (localhost)');
+      } catch (errLocal) {
+        // tentar com host '%' caso o usuário tenha sido criado com host coringa
+        try {
+          await connection.execute(
+            `ALTER USER '${process.env.DB_USER}'@'%' IDENTIFIED WITH mysql_native_password BY '${process.env.DB_PASSWORD}'`
+          );
+          console.log("✓ Autenticação do utilizador corrigida ('%')");
+        } catch (errAny) {
+          console.log('ℹ Não foi possível alterar o método de autenticação do utilizador (provavelmente não necessário)');
+        }
+      }
     } catch (error) {
       if (error.code === 'ER_PARSE_ERROR') {
         console.log('ℹ Autenticação já estava configurada');

@@ -149,6 +149,95 @@ function createTables() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
 
+    // POSTOS (11)
+    const createPostosTable = `
+        CREATE TABLE IF NOT EXISTS postos (
+            id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            entidade_id CHAR(36),
+            nome VARCHAR(100) NOT NULL,
+            codigo_posto VARCHAR(20) UNIQUE,
+            localizacao TEXT,
+
+            FOREIGN KEY (entidade_id) REFERENCES empresas(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+
+    // KITS (12)
+    const createKitsTable = `
+        CREATE TABLE IF NOT EXISTS kits (
+            id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            codigo_barras VARCHAR(50) UNIQUE NOT NULL,
+            tipo_kit_id CHAR(36),
+            lote_id CHAR(36),
+            status VARCHAR(30) DEFAULT 'Disponível',
+            data_validade DATE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+
+    // PROCESSOS (13)
+    const createProcessosTable = `
+        CREATE TABLE IF NOT EXISTS processos (
+            id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            numero_processo VARCHAR(20) UNIQUE NOT NULL,
+            paciente_id CHAR(36),
+            medico_id CHAR(36),
+            posto_id CHAR(36),
+            kit_id CHAR(36),
+            status_id VARCHAR(30),
+            data_entrada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (paciente_id) REFERENCES pacientes(id),
+            FOREIGN KEY (medico_id) REFERENCES medicos(utilizador_id),
+            FOREIGN KEY (posto_id) REFERENCES postos(id),
+            FOREIGN KEY (kit_id) REFERENCES kits(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+
+    // RESULTADOS GENÉTICOS (14)
+    const createResultadosGeneticosTable = `
+        CREATE TABLE IF NOT EXISTS resultados_geneticos (
+            id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            processo_id CHAR(36),
+            cromossoma VARCHAR(10),
+            resultado_valor VARCHAR(50),
+            probabilidade VARCHAR(50),
+            tipo_resultado VARCHAR(20),
+
+            FOREIGN KEY (processo_id) REFERENCES processos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+
+    // ASSETS (15)
+    const createAssetsTable = `
+        CREATE TABLE IF NOT EXISTS assets_resultados (
+            id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            processo_id CHAR(36),
+            url_ficheiro TEXT NOT NULL,
+            tipo_ficheiro VARCHAR(10) DEFAULT 'PDF',
+            data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (processo_id) REFERENCES processos(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+
+    // FACTURAÇÃO (16)
+    const createFacturacaoTable = `
+        CREATE TABLE IF NOT EXISTS facturacao (
+            id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            processo_id CHAR(36) NOT NULL,
+            preco_teste DECIMAL(10,2) DEFAULT 0.00,
+            numero_fatura VARCHAR(50),
+            data_fatura DATE,
+            entidade_multibanco VARCHAR(20),
+            referencia_multibanco VARCHAR(20),
+            comissao BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (processo_id) REFERENCES processos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+
     const tables = [
         createPerfisTable,
         createEmpresasTable,
@@ -159,7 +248,13 @@ function createTables() {
         createTesteComposicaoTable,
         createPacientesTable,
         createPedidosTable,
-        createResultadosTable
+        createResultadosTable,
+        createPostosTable,
+        createKitsTable,
+        createProcessosTable,
+        createResultadosGeneticosTable,
+        createAssetsTable,
+        createFacturacaoTable
     ];
 
     tables.forEach((query, index) => {

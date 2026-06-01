@@ -1,9 +1,11 @@
 const logRepository = require('../repositories/log.repository');
 
-exports.log = async ({ utilizador_id, acao, tabela }) => {
+exports.log = async ({ utilizador_id, empresa_id, acao, tabela, registro_id }) => {
     await logRepository.create({
         utilizador_id,
+        empresa_id,
         acao,
-        tabela_afetada: tabela
+        tabela_afetada: tabela,
+        registro_id
     });
 };

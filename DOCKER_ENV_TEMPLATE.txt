@@ -1,0 +1,31 @@
+"# =========================================
+# Configurações do Docker - Genoma App
+# =========================================
+# Copie este arquivo para .env e configure as variáveis
+# cp DOCKER_ENV_TEMPLATE.txt .env
+
+# =========================================
+# Banco de Dados MySQL
+# =========================================
+MYSQL_ROOT_PASSWORD=root_password_segura
+MYSQL_DATABASE=genoma_db
+MYSQL_USER=genoma_user
+MYSQL_PASSWORD=genoma_password_segura
+
+# =========================================
+# Backend API
+# =========================================
+NODE_ENV=production
+PORT=3000
+
+# =========================================
+# JWT Authentication
+# =========================================
+JWT_SECRET=sua_chave_secreta_jwt_muito_segura_trocar_em_producao
+JWT_EXPIRES_IN=7d
+
+# =========================================
+# Configurações do Flutter
+# =========================================
+FLUTTER_API_URL=http://localhost:3000
+"

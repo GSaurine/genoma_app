@@ -14,7 +14,13 @@ const medicosService = require('./medicos.service');
 const testeComposicaoService = require('./teste_composicao.service');
 const pedidosService = require('./pedidos_exames.service');
 const resultadosService = require('./resultados_detalhados.service');
+const postosService = require('./postos.service');
+const kitsService = require('./kits.service');
+const processosService = require('./processos.service');
+const resultadosGeneticosService = require('./resultados_geneticos.service');
+const assetsResultadosService = require('./assets_resultados.service');
 const logService = require('./log.service');
+const facturacaoService = require('./facturacao.service');
 
 module.exports = {
   authService,
@@ -28,5 +34,11 @@ module.exports = {
   testeComposicaoService,
   pedidosService,
   resultadosService,
-  logService
+  postosService,
+  kitsService,
+  processosService,
+  resultadosGeneticosService,
+  assetsResultadosService,
+  logService,
+  facturacaoService
 };
