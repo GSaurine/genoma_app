@@ -1,73 +1,113 @@
 import 'package:flutter/material.dart';
 
 class AdminCards extends StatelessWidget {
-  final VoidCallback onCreatePaciente;
-  final VoidCallback onCreateEmpresa;
-  final VoidCallback onCreateKit;
-  final VoidCallback onCreateUtilizador;
-  final VoidCallback onCreateProcesso;
-  final VoidCallback onCreatePerfil;
-  final VoidCallback onCreateMedico;
-  final VoidCallback onCreateTeste;
-  final VoidCallback onCreateItem;
-  final VoidCallback onCreatePosto;
-  final VoidCallback onCreateResultado;
-  final VoidCallback onCreateResultadoGenetico;
+  final VoidCallback onOperationsTap;
+  final VoidCallback onStaffTap;
+  final VoidCallback onPartnersTap;
+  final VoidCallback onCatalogTap;
 
   const AdminCards({
     Key? key,
-    required this.onCreatePaciente,
-    required this.onCreateEmpresa,
-    required this.onCreateKit,
-    required this.onCreateUtilizador,
-    required this.onCreateProcesso,
-    required this.onCreatePerfil,
-    required this.onCreateMedico,
-    required this.onCreateTeste,
-    required this.onCreateItem,
-    required this.onCreatePosto,
-    required this.onCreateResultado,
-    required this.onCreateResultadoGenetico,
+    required this.onOperationsTap,
+    required this.onStaffTap,
+    required this.onPartnersTap,
+    required this.onCatalogTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.1,
       children: [
-        _buildCard('Processos (Exames)', 'Criar novo processo de exame', onCreateProcesso, color: Colors.green.withOpacity(0.05)),
-        const SizedBox(height: 12),
-        _buildCard('Pacientes', 'Criar / gerenciar pacientes', onCreatePaciente),
-        const SizedBox(height: 12),
-        _buildCard('Empresas', 'Criar / gerenciar empresas', onCreateEmpresa),
-        const SizedBox(height: 12),
-        _buildCard('Utilizadores', 'Criar / gerenciar utilizadores', onCreateUtilizador),
-        const SizedBox(height: 12),
-        _buildCard('Kits', 'Criar / gerenciar kits', onCreateKit),
-        const SizedBox(height: 12),
-        _buildCard('Perfis', 'Criar perfis de acesso', onCreatePerfil),
-        const SizedBox(height: 12),
-        _buildCard('Médicos', 'Criar registo de médico', onCreateMedico),
-        const SizedBox(height: 12),
-        _buildCard('Postos', 'Criar postos de colheita', onCreatePosto),
-        const SizedBox(height: 12),
-        _buildCard('Testes', 'Criar tipos de testes', onCreateTeste),
-        const SizedBox(height: 12),
-        _buildCard('Itens de Pesquisa', 'Criar itens para resultados', onCreateItem),
-        const SizedBox(height: 12),
-        _buildCard('Resultados Detalhados', 'Criar resultados para exames', onCreateResultado),
-        const SizedBox(height: 12),
-        _buildCard('Resultados Genéticos', 'Criar dados genéticos', onCreateResultadoGenetico),
+        _buildPillarCard(
+          context,
+          'Hub de Operações',
+          'Gestão de Exames e Processos',
+          Icons.biotech,
+          Colors.green,
+          onOperationsTap,
+        ),
+        _buildPillarCard(
+          context,
+          'Gestão de Staff',
+          'Utilizadores e Médicos',
+          Icons.people_alt,
+          Colors.deepPurple,
+          onStaffTap,
+        ),
+        _buildPillarCard(
+          context,
+          'Rede de Parceiros',
+          'Empresas e Postos',
+          Icons.business,
+          Colors.blue,
+          onPartnersTap,
+        ),
+        _buildPillarCard(
+          context,
+          'Catálogo',
+          'Configuração de Testes',
+          Icons.inventory_2,
+          Colors.orange,
+          onCatalogTap,
+        ),
       ],
     );
   }
 
-  Widget _buildCard(String title, String subtitle, VoidCallback onPressed, {Color? color}) {
+  Widget _buildPillarCard(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Card(
-      color: color,
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: ElevatedButton(onPressed: onPressed, child: const Text('Criar')),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 32),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

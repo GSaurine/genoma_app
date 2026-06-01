@@ -17,6 +17,7 @@ import 'package:genoma/core/ui/notification_service.dart';
 import 'package:genoma/widgets/admin_cards.dart';
 import 'package:genoma/widgets/create_dialogs.dart';
 import 'package:genoma/widgets/table_chip.dart';
+import 'package:genoma/pages/table_list_page.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -108,7 +109,7 @@ class _AdminHomeState extends State<AdminHome> {
   }
 
   Future<void> _showCreateTesteDialog() async {
-    final result = await showCreateTesteDialog(context, _testesService);
+    final result = await showCreateTesteDialog(context, _testesService, _itensService);
     if (result == true) NotificationService().showSuccess('Teste criado com sucesso');
   }
 
@@ -132,6 +133,180 @@ class _AdminHomeState extends State<AdminHome> {
     if (result == true) NotificationService().showSuccess('Resultado genético criado com sucesso');
   }
 
+  void _onOperationsTap() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Hub de Operações', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.add_chart, color: Colors.green),
+              title: const Text('Novo Processo de Exame'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCreateProcessoDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.list_alt, color: Colors.blue),
+              title: const Text('Gerir Processos Ativos'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TableListPage(endpoint: '/processos', title: 'Processos')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long, color: Colors.orange),
+              title: const Text('Faturação'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TableListPage(endpoint: '/facturacao', title: 'Faturação')),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onStaffTap() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Gestão de Staff', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.person_add, color: Colors.deepPurple),
+              title: const Text('Criar Utilizador / Médico'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCreateUtilizadorDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.assignment_ind, color: Colors.blue),
+              title: const Text('Listar Utilizadores'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TableListPage(endpoint: '/utilizadores', title: 'Utilizadores')),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onPartnersTap() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Rede de Parceiros', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.business_center, color: Colors.blue),
+              title: const Text('Criar Nova Empresa'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCreateEmpresaDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.location_on, color: Colors.red),
+              title: const Text('Criar Novo Posto'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCreatePostoDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.apartment, color: Colors.grey),
+              title: const Text('Gerir Empresas'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TableListPage(endpoint: '/empresas', title: 'Empresas')),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onCatalogTap() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Catálogo & Configuração', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.add_task, color: Colors.orange),
+              title: const Text('Configurar Novo Teste (Catálogo)'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCreateTesteDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.science, color: Colors.orange),
+              title: const Text('Gerir Testes Existentes'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TableListPage(endpoint: '/testes', title: 'Testes')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.list, color: Colors.grey),
+              title: const Text('Itens de Pesquisa'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TableListPage(endpoint: '/itens', title: 'Itens de Pesquisa')),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,43 +327,34 @@ class _AdminHomeState extends State<AdminHome> {
         padding: const EdgeInsets.all(16),
         children: [
           AdminCards(
-            onCreatePaciente: _showCreatePacienteDialog,
-            onCreateEmpresa: _showCreateEmpresaDialog,
-            onCreateKit: _showCreateKitDialog,
-            onCreateUtilizador: _showCreateUtilizadorDialog,
-            onCreateProcesso: _showCreateProcessoDialog,
-            onCreatePerfil: _showCreatePerfilDialog,
-            onCreateMedico: _showCreateMedicoDialog,
-            onCreateTeste: _showCreateTesteDialog,
-            onCreateItem: _showCreateItemDialog,
-            onCreatePosto: _showCreatePostoDialog,
-            onCreateResultado: _showCreateResultadoDialog,
-            onCreateResultadoGenetico: _showCreateResultadoGeneticoDialog,
+            onOperationsTap: _onOperationsTap,
+            onStaffTap: _onStaffTap,
+            onPartnersTap: _onPartnersTap,
+            onCatalogTap: _onCatalogTap,
           ),
           const SizedBox(height: 12),
           Card(
             child: ExpansionTile(
-              title: const Text('Tabelas (Visualizar / Editar)'),
+              title: const Text('Atalhos de Dados (Pacientes & Kits)'),
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: const [
+                    children: [
                       TableChip(label: 'Pacientes', endpoint: '/pacientes'),
-                      TableChip(label: 'Utilizadores', endpoint: '/utilizadores'),
-                      TableChip(label: 'Empresas', endpoint: '/empresas'),
-                      TableChip(label: 'Perfis', endpoint: '/perfis'),
                       TableChip(label: 'Kits', endpoint: '/kits'),
-                      TableChip(label: 'Testes', endpoint: '/testes'),
-                      TableChip(label: 'Itens', endpoint: '/itens'),
-                      TableChip(label: 'Medicos', endpoint: '/medicos'),
-                      TableChip(label: 'Postos', endpoint: '/postos'),
-                      TableChip(label: 'Processos', endpoint: '/processos'),
-                      TableChip(label: 'Resultados', endpoint: '/resultados'),
-                      TableChip(label: 'Resultados Genéticos', endpoint: '/resultados-geneticos'),
-                      TableChip(label: 'Faturação', endpoint: '/facturacao'),
+                      TextButton.icon(
+                        onPressed: _showCreatePacienteDialog, 
+                        icon: const Icon(Icons.add, size: 16), 
+                        label: const Text('Novo Paciente')
+                      ),
+                      TextButton.icon(
+                        onPressed: _showCreateKitDialog, 
+                        icon: const Icon(Icons.add, size: 16), 
+                        label: const Text('Novo Kit')
+                      ),
                     ],
                   ),
                 )

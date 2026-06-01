@@ -26,4 +26,13 @@ class TestesService {
     }
     return null;
   }
+
+  Future<bool> addItemToTeste(String testeId, String itemId) async {
+    final api = APIService();
+    final resp = await api.postRequest('/teste-composicao', data: {
+      'teste_id': testeId,
+      'item_id': itemId,
+    });
+    return resp.statusCode == 200 || resp.statusCode == 201;
+  }
 }

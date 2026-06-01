@@ -281,8 +281,14 @@ Future<bool?> showCreateUtilizadorDialog(
   final email = TextEditingController();
   final password = TextEditingController();
   final telefone = TextEditingController();
+  
+  // Novos controllers para Médico
+  final numOrdem = TextEditingController();
+  final especialidade = TextEditingController();
+
   String? selectedPerfilId;
   String? selectedEmpresaId;
+  bool isSaving = false;
 
   List<Map<String, dynamic>> perfis = [];
   List<Map<String, dynamic>> empresas = [];
@@ -293,54 +299,101 @@ Future<bool?> showCreateUtilizadorDialog(
 
   final result = await showDialog<bool>(
     context: context,
-    builder: (ctx) => StatefulBuilder(builder: (ctx2, setState) => AlertDialog(
-      title: const Text('Criar Utilizador'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nome, decoration: const InputDecoration(labelText: 'Nome')),
-            TextField(controller: email, decoration: const InputDecoration(labelText: 'Email')),
-            TextField(controller: password, decoration: const InputDecoration(labelText: 'Senha'), obscureText: true),
-            TextField(controller: telefone, decoration: const InputDecoration(labelText: 'Telefone')),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Perfil'),
-              items: perfis.map((p) => DropdownMenuItem(value: p['id']?.toString(), child: Text(p['nome'] ?? '-'))).toList(),
-              value: selectedPerfilId,
-              onChanged: (v) => setState(() => selectedPerfilId = v),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Empresa (opcional)'),
-              items: empresas.map((e) => DropdownMenuItem(value: e['id']?.toString(), child: Text(e['nome'] ?? '-'))).toList(),
-              value: selectedEmpresaId,
-              onChanged: (v) => setState(() => selectedEmpresaId = v),
-            ),
-          ],
+    builder: (ctx) => StatefulBuilder(builder: (ctx2, setState) {
+      // Verifica se o perfil selecionado é "Médico"
+      final selectedPerfil = perfis.firstWhere((p) => p['id'] == selectedPerfilId, orElse: () => {});
+      final isMedico = selectedPerfil['nome']?.toString().toLowerCase().contains('médico') ?? false;
+
+      return AlertDialog(
+        title: const Text('Criar Utilizador'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nome, decoration: const InputDecoration(labelText: 'Nome')),
+              TextField(controller: email, decoration: const InputDecoration(labelText: 'Email')),
+              TextField(controller: password, decoration: const InputDecoration(labelText: 'Senha'), obscureText: true),
+              TextField(controller: telefone, decoration: const InputDecoration(labelText: 'Telefone')),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Perfil'),
+                items: perfis.map((p) => DropdownMenuItem(value: p['id']?.toString(), child: Text(p['nome'] ?? '-'))).toList(),
+                value: selectedPerfilId,
+                onChanged: (v) => setState(() => selectedPerfilId = v),
+              ),
+              
+              if (isMedico) ...[
+                const Divider(height: 32),
+                const Text('Dados do Médico', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.deepPurple)),
+                TextField(controller: numOrdem, decoration: const InputDecoration(labelText: 'Número de Ordem (Cédula)')),
+                TextField(controller: especialidade, decoration: const InputDecoration(labelText: 'Especialidade')),
+              ],
+
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Empresa (opcional)'),
+                items: empresas.map((e) => DropdownMenuItem(value: e['id']?.toString(), child: Text(e['nome'] ?? '-'))).toList(),
+                value: selectedEmpresaId,
+                onChanged: (v) => setState(() => selectedEmpresaId = v),
+              ),
+            ],
+          ),
         ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-        ElevatedButton(onPressed: () async {
-          final data = {
-            'nome': nome.text.trim(),
-            'email': email.text.trim(),
-            'password': password.text,
-            'telefone': telefone.text.trim().isEmpty ? null : telefone.text.trim(),
-            'perfil_id': selectedPerfilId,
-            'empresa_id': selectedEmpresaId,
-          }..removeWhere((k, v) => v == null);
-          try {
-            final created = await utilizadoresService.createUtilizador(data);
-            Navigator.of(ctx).pop(created != null);
-          } catch (e) {
-            NotificationService().showError('Erro ao criar utilizador: ${e.toString()}');
-            Navigator.of(ctx).pop(false);
-          }
-        }, child: const Text('Criar')),
-      ],
-    )),
+        actions: [
+          TextButton(onPressed: isSaving ? null : () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: isSaving ? null : () async {
+              if (nome.text.isEmpty || email.text.isEmpty || password.text.isEmpty || selectedPerfilId == null) {
+                NotificationService().showError('Preencha os campos obrigatórios');
+                return;
+              }
+
+              setState(() => isSaving = true);
+
+              try {
+                // 1. Criar Utilizador
+                final userData = {
+                  'nome': nome.text.trim(),
+                  'email': email.text.trim(),
+                  'password': password.text,
+                  'telefone': telefone.text.trim().isEmpty ? null : telefone.text.trim(),
+                  'perfil_id': selectedPerfilId,
+                  'empresa_id': selectedEmpresaId,
+                }..removeWhere((k, v) => v == null);
+
+                final createdUser = await utilizadoresService.createUtilizador(userData);
+                
+                if (createdUser != null && isMedico) {
+                  // 2. Se for médico, criar registro na tabela de médicos
+                  final medicoData = {
+                    'utilizador_id': createdUser['id'],
+                    'num_ordem': numOrdem.text.trim(),
+                    'especialidade': especialidade.text.trim(),
+                  };
+                  
+                  final createdMedico = await MedicosService().createMedico(medicoData);
+                  if (createdMedico == null) {
+                    NotificationService().showError('Utilizador criado, mas erro ao criar perfil médico');
+                  }
+                }
+
+                if (createdUser != null) {
+                  Navigator.of(ctx).pop(true);
+                } else {
+                  setState(() => isSaving = false);
+                }
+              } catch (e) {
+                setState(() => isSaving = false);
+                NotificationService().showError('Erro: ${e.toString()}');
+              }
+            }, 
+            child: isSaving 
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Text('Criar')
+          ),
+        ],
+      );
+    }),
   );
 
   return result;
@@ -665,35 +718,134 @@ Future<bool?> showCreateMedicoDialog(BuildContext context, MedicosService medico
   );
 }
 
-Future<bool?> showCreateTesteDialog(BuildContext context, TestesService testesService) async {
+Future<bool?> showCreateTesteDialog(
+  BuildContext context, 
+  TestesService testesService,
+  ItensPesquisaService itensService,
+) async {
   final nome = TextEditingController();
   final preco = TextEditingController();
   final descricao = TextEditingController();
+  
+  List<Map<String, dynamic>> allItens = [];
+  List<String> selectedItensIds = [];
+  bool isLoading = true;
+
+  try {
+    allItens = await itensService.fetchItens();
+    isLoading = false;
+  } catch (_) {
+    isLoading = false;
+  }
 
   return showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Criar Teste'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(controller: nome, decoration: const InputDecoration(labelText: 'Nome')),
-          TextField(controller: preco, decoration: const InputDecoration(labelText: 'Preço'), keyboardType: TextInputType.number),
-          TextField(controller: descricao, decoration: const InputDecoration(labelText: 'Descrição'), maxLines: 2),
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx2, setState) => AlertDialog(
+        title: const Text('Configurar Novo Teste'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nome, decoration: const InputDecoration(labelText: 'Nome do Teste *')),
+              TextField(
+                controller: preco, 
+                decoration: const InputDecoration(labelText: 'Preço Base (€)'), 
+                keyboardType: const TextInputType.numberWithOptions(decimal: true)
+              ),
+              TextField(controller: descricao, decoration: const InputDecoration(labelText: 'Descrição'), maxLines: 2),
+              
+              const Divider(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Composição do Teste', style: TextStyle(fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline, color: Colors.orange, size: 20),
+                    onPressed: () async {
+                      final result = await showCreateItemDialog(context, itensService);
+                      if (result == true) {
+                        setState(() => isLoading = true);
+                        final updatedItens = await itensService.fetchItens();
+                        setState(() {
+                          allItens = updatedItens;
+                          isLoading = false;
+                        });
+                      }
+                    },
+                    tooltip: 'Novo Item de Pesquisa',
+                  ),
+                ],
+              ),
+              
+              if (isLoading)
+                const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()))
+              else if (allItens.isEmpty)
+                const Text('Nenhum item cadastrado', style: TextStyle(fontSize: 12, color: Colors.grey))
+              else
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: allItens.map((item) {
+                      final id = item['id'].toString();
+                      final isSelected = selectedItensIds.contains(id);
+                      return CheckboxListTile(
+                        title: Text(item['descricao'] ?? 'Sem descrição'),
+                        subtitle: Text('Código: ${item['codigo'] ?? '-'}', style: const TextStyle(fontSize: 10)),
+                        value: isSelected,
+                        dense: true,
+                        onChanged: (val) {
+                          setState(() {
+                            if (val == true) {
+                              selectedItensIds.add(id);
+                            } else {
+                              selectedItensIds.remove(id);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              if (nome.text.isEmpty) {
+                NotificationService().showError('O nome do teste é obrigatório');
+                return;
+              }
+
+              try {
+                // 1. Criar o Teste
+                final createdTeste = await testesService.createTeste({
+                  'nome': nome.text.trim(),
+                  'preco': double.tryParse(preco.text.replaceAll(',', '.')),
+                  'descricao': descricao.text.trim(),
+                });
+
+                if (createdTeste != null) {
+                  final testeId = createdTeste['id'].toString();
+                  // 2. Adicionar cada item selecionado
+                  for (final itemId in selectedItensIds) {
+                    await testesService.addItemToTeste(testeId, itemId);
+                  }
+                  Navigator.of(ctx).pop(true);
+                } else {
+                  NotificationService().showError('Erro ao criar o teste');
+                }
+              } catch (e) {
+                NotificationService().showError('Erro: ${e.toString()}');
+              }
+            }, 
+            child: const Text('Salvar Catálogo')
+          ),
         ],
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-        ElevatedButton(onPressed: () async {
-          if (nome.text.isEmpty) return;
-          final created = await testesService.createTeste({
-            'nome': nome.text.trim(),
-            'preco': double.tryParse(preco.text.replaceAll(',', '.')),
-            'descricao': descricao.text.trim(),
-          });
-          Navigator.of(ctx).pop(created != null);
-        }, child: const Text('Criar')),
-      ],
     ),
   );
 }
@@ -728,13 +880,20 @@ Future<bool?> showCreateItemDialog(BuildContext context, ItensPesquisaService it
   );
 }
 
-Future<bool?> showCreatePostoDialog(BuildContext context, PostosService postosService, EmpresasService empresasService) async {
+Future<bool?> showCreatePostoDialog(
+  BuildContext context, 
+  PostosService postosService, 
+  EmpresasService empresasService, {
+  String? initialEmpresaId,
+}) async {
   final nome = TextEditingController();
   final codigoPosto = TextEditingController();
   final localizacao = TextEditingController();
-  String? selectedEmpresaId;
+  String? selectedEmpresaId = initialEmpresaId;
   List<Map<String, dynamic>> empresas = [];
-  try { empresas = await empresasService.fetchEmpresas(); } catch (_) {}
+  try { 
+    empresas = await empresasService.fetchEmpresas(); 
+  } catch (_) {}
 
   return showDialog<bool>(
     context: context,
@@ -757,7 +916,10 @@ Future<bool?> showCreatePostoDialog(BuildContext context, PostosService postosSe
       actions: [
         TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
         ElevatedButton(onPressed: () async {
-          if (nome.text.isEmpty || selectedEmpresaId == null) return;
+          if (nome.text.isEmpty || selectedEmpresaId == null) {
+            NotificationService().showError('Preencha o nome e selecione uma empresa');
+            return;
+          }
           final created = await postosService.createPosto({
             'entidade_id': selectedEmpresaId,
             'nome': nome.text.trim(),
