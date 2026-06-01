@@ -4,11 +4,13 @@ FROM node:18-alpine
 # Define diretório de trabalho
 WORKDIR /app
 
-# Copia package.json e package-lock.json
-COPY package*.json ./
+# Copia package.json (e package-lock.json se existir)
+COPY package.json ./
+# Se houver package-lock.json, copia ele também
+COPY package-lock.json* ./
 
-# Instala dependências
-RUN npm ci
+# Instala dependências (usando install em vez de ci para maior flexibilidade no deploy inicial)
+RUN npm install
 
 # Instalar cliente MariaDB para permitir checagem de disponibilidade do DB
 RUN apk add --no-cache mariadb-client
