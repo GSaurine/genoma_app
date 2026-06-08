@@ -1,33 +1,32 @@
-# Backend Dockerfile - Genoma API
+# Use a imagem oficial do Node.js LTS (Lightweight)
 FROM node:18-alpine
 
-# Define diretório de trabalho
+# Definir o diretório de trabalho
 WORKDIR /app
 
-# Copia package.json (e package-lock.json se existir)
-COPY package.json ./
-# Se houver package-lock.json, copia ele também
-COPY package-lock.json* ./
+# Instalar dependências necessárias para o entrypoint e healthcheck
+# mariadb-client é usado no entrypoint.sh para verificar se o DB está pronto
+RUN apk add --no-cache mariadb-client wget
 
-# Instala dependências (usando install em vez de ci para maior flexibilidade no deploy inicial)
-RUN npm install
+# Copiar arquivos de definição de dependências
+COPY package*.json ./
 
-# Instalar cliente MariaDB para permitir checagem de disponibilidade do DB
-RUN apk add --no-cache mariadb-client
+# Instalar dependências de produção
+RUN npm install --omit=dev
 
-# Copia o código fonte
+# Copiar o restante do código fonte
 COPY . .
 
-# Copia entrypoint e torna executável
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Garantir que o entrypoint tenha permissões de execução
+RUN chmod +x entrypoint.sh
 
-# Health check
+# A variável PORT é fornecida pelo Railway automaticamente
+ENV PORT 3000
+EXPOSE ${PORT}
+
+# Healthcheck para monitorar a saúde da API
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
-# Expõe a porta da API
-EXPOSE 3000
-
-# Usar entrypoint que aguarda o DB, executa migrações e inicia a aplicação
-ENTRYPOINT ["/entrypoint.sh"]
+# Comando para iniciar a aplicação através do entrypoint (que executa migrações)
+CMD ["./entrypoint.sh"]
